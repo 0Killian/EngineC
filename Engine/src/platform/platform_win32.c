@@ -47,7 +47,7 @@ void platform_deinit(void* state) {
     // There is nothing to do here...
 }
 
-static console_write(u8 color, const char* message, HANDLE console_handle) {
+static void console_write(u8 color, const char* message, HANDLE console_handle) {
     CONSOLE_SCREEN_BUFFER_INFO buffer_info;
     GetConsoleScreenBufferInfo(console_handle, &buffer_info);
 
