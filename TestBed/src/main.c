@@ -1,13 +1,17 @@
-#include <platform/platform.h>
+#include <entry.h>
 #include <stdio.h>
-#include <stdlib.h>
 
-int main(void) {
-    // TODO: Make a proper entry point
-    printf("INFO: Initializing platform... ");
-    u64 size_requirement = 0;
-    platform_init(NULL, &size_requirement);
-    void *state = malloc(size_requirement);
-    platform_init(state, &size_requirement);
-    printf("Done\n");
+b8 init(application* app) {
+    printf("init\n");
+    return TRUE;
+}
+
+void deinit(application* app) {
+    printf("deinit\n");
+}
+
+b8 create_application(application* app) {
+    app->init = init;
+    app->deinit = deinit;
+    return TRUE;
 }
