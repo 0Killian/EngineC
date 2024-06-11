@@ -14,6 +14,7 @@
 #include "common.h"
 #include "application.h"
 #include "core/engine.h"
+#include "core/log.h"
 
 /**
  * @brief User-provided function for creating the application.
@@ -43,30 +44,30 @@ int main(void) {
     // Create the application
     application app = {};
     if (!create_application(&app)) {
-        // TODO: Log
+        LOG_ERROR("Failed to create application");
         return 1;
     }
 
     // Ensure that all necessary fields are set
     if (!app.init || !app.deinit) {
-        // TODO: Log
+        LOG_ERROR("Application hooks not defined");
         return 2;
     }
 
     // Initialization
     if (!engine_init(&app)) {
-        // TODO: Log
+        LOG_ERROR("Failed to initialize engine");
         return 3;
     }
 
     if (!app.init(&app)) {
-        // TODO: Log
+        LOG_ERROR("Failed to initialize application");
         return 4;
     }
 
     // Start the main loop
     if (!engine_run(&app)) {
-        // TODO: Log
+        LOG_ERROR("Failed to run engine");
         return 5;
     }
 

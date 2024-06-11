@@ -1,6 +1,7 @@
 #include "engine.h"
 #include "application.h"
 #include "platform/platform.h"
+#include "core/log.h"
 
 // TODO: Remove these
 #include <stdlib.h>
@@ -27,13 +28,13 @@ b8 engine_init(application* app) {
     // Initializing platform layer
     u64 size_requirement;
     if (!platform_init(NULL, &size_requirement)) {
-        // TODO: Log
+        LOG_ERROR("Failed to initialize the platform layer");
         return FALSE;
     }
 
     state->platform_state = malloc(size_requirement);
     if (!platform_init(state->platform_state, &size_requirement)) {
-        // TODO: Log
+        LOG_ERROR("Failed to initialize the platform layer");
         return FALSE;
     }
 
