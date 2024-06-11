@@ -13,10 +13,7 @@
 
 #include "common.h"
 #include "application.h"
-
-// TODO: Remove these
-#include "platform/platform.h"
-#include <stdlib.h>
+#include "core/engine.h"
 
 /**
  * @brief User-provided function for creating the application.
@@ -40,6 +37,7 @@ extern b8 create_application(application* app);
  * @retval 2 Application hooks not defined
  * @retval 3 Engine initialization error
  * @retval 4 Application initialization error
+ * @retval 5 Engine run error
  */
 int main(void) {
     // Create the application
@@ -56,14 +54,7 @@ int main(void) {
     }
 
     // Initialization
-    // TODO: Initialize the engine here
-    u64 size_requirement;
-    if (!platform_init(NULL, &size_requirement)) {
-        // TODO: Log
-        return 3;
-    }
-    void* state = malloc(size_requirement);
-    if (!platform_init(state, &size_requirement)) {
+    if (!engine_init(&app)) {
         // TODO: Log
         return 3;
     }
@@ -74,13 +65,14 @@ int main(void) {
     }
 
     // Start the main loop
-    // TODO: Start the main loop here
+    if (!engine_run(&app)) {
+        // TODO: Log
+        return 5;
+    }
 
     // Deinitialization
-    // TODO: Deinitialize the engine here
     app.deinit(&app);
-    platform_deinit(state);
-    free(state);
+    engine_deinit(&app);
 
     return 0;
 }
