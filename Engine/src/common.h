@@ -1,3 +1,11 @@
+/**
+ * @file common.h
+ * @author Killian Bellouard (killianbellouard@gmail.com)
+ * @brief This file defines common data types and macros used throughout the project.
+ * @version 1.0
+ * @date 2024-06-11
+ */
+
 #pragma once
 
 #include <stdint.h>
