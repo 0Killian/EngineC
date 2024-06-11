@@ -5,10 +5,13 @@
 
 // TODO: Remove these
 #include <stdlib.h>
+#include <string.h>
 
 typedef struct engine_state {
     /** @brief The state of the platform layer. */
     void* platform_state;
+    /** @brief The state of the logging system. */
+    void* logging_state;
 } engine_state;
 
 /**
@@ -23,6 +26,7 @@ b8 engine_init(application* app) {
     // TODO: Allocate using memory management layer
     // Allocating engine state
     app->engine_state = malloc(sizeof(engine_state));
+    memset(app->engine_state, 0, sizeof(engine_state));
     engine_state* state = (engine_state*)app->engine_state;
 
     // Initializing platform layer
@@ -38,6 +42,18 @@ b8 engine_init(application* app) {
         return FALSE;
     }
 
+    // Initializing logging system
+    if (!log_init(NULL, &size_requirement)) {
+        LOG_ERROR("Failed to initialize the logging system");
+        return FALSE;
+    }
+
+    state->logging_state = malloc(size_requirement);
+    if (!log_init(state->logging_state, &size_requirement)) {
+        LOG_ERROR("Failed to initialize the logging system");
+        return FALSE;
+    }
+
     return TRUE;
 }
 
@@ -50,10 +66,17 @@ void engine_deinit(struct application* app) {
     // TODO: Deallocate using memory management layer
     engine_state* state = (engine_state*)app->engine_state;
 
-    // Deinitializing platform layer
-    platform_deinit(state->platform_state);
+    // Deinitializing layers and systems
+    if (state->logging_state) {
+        log_deinit(state->logging_state);
+    }
+
+    if (state->platform_state) {
+        platform_deinit(state->platform_state);
+    }
 
     // Deallocating engine state
+    free(state->logging_state);
     free(state->platform_state);
     free(state);
 }
