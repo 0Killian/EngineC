@@ -1,5 +1,6 @@
 #include "log.h"
 #include "platform/platform.h"
+#include "platform/filesystem.h"
 #include <stdarg.h>
 #include <stdio.h>
 #include <string.h>
@@ -9,7 +10,7 @@
 
 /** @brief The state of the logging system */
 typedef struct logging_system_state {
-
+    filesystem_handle log_file;
 } logging_system_state;
 
 static logging_system_state* state = NULL;
@@ -24,7 +25,6 @@ static logging_system_state* state = NULL;
  */
 API void log_output(log_level level, const char* scope, const char* message, ...) {
     // TODO: Move this to another thread
-    // TODO: Log in file
     const char* level_names[] = {"TRACE", "DEBUG", "INFO", "WARN", "ERROR", "FATAL"};
     platform_console_color level_colors_foreground[] = {
         PLATFORM_CONSOLE_COLOR_CYAN,
@@ -66,14 +66,30 @@ API void log_output(log_level level, const char* scope, const char* message, ...
         LOG_WARN("Next message is too long to fit in the buffer. Please increase the buffer size or decrease the message size");
     }
 
-    buffer[offset + size] = '\n';
-    buffer[offset + size + 1] = '\0';
+    buffer[offset + size] = 0;
 
     // Print the message
     if (level >= LOG_LEVEL_ERROR) {
         platform_console_write_error(level_colors_foreground[level], level_colors_background[level], buffer);
+        platform_console_write_error(level_colors_foreground[LOG_LEVEL_INFO], level_colors_background[LOG_LEVEL_INFO], "\n");
     } else {
         platform_console_write(level_colors_foreground[level], level_colors_background[level], buffer);
+        platform_console_write(level_colors_foreground[LOG_LEVEL_INFO], level_colors_background[LOG_LEVEL_INFO], "\n");
+    }
+
+    buffer[offset + size] = '\n';
+
+    if (state != NULL && state->log_file != NULL) {
+        if (!filesystem_handle_write(state->log_file, buffer, offset + size + 1)) {
+            b8 result = filesystem_handle_close(state->log_file);
+            state->log_file = NULL;
+
+            if (!result) {
+                LOG_WARN("Failed to close log file");
+            }
+
+            LOG_WARN("Failed to write to log file, logging to console only");
+        }
     }
 }   
 
@@ -99,6 +115,11 @@ API b8 log_init(void* state_storage, u64* size_requirement) {
 
     state = (logging_system_state*)state_storage;
 
+    if(!filesystem_handle_open("log.txt", FILESYSTEM_OPEN_MODE_WRITE, &state->log_file)) {
+        state->log_file = NULL;
+        LOG_WARN("Failed to open log file");
+    }
+
     return TRUE;
 }
 
@@ -107,6 +128,12 @@ API b8 log_init(void* state_storage, u64* size_requirement) {
  * 
  * @param[in] state A pointer to the state of the logging system.
  */
-API void log_deinit(void* state) {
-    // Nothing to do here...
+API void log_deinit(void*) {
+    if (state != NULL && state->log_file != NULL) {
+        b8 result = filesystem_handle_close(state->log_file);
+        state->log_file = NULL;
+        if (!result) {
+            LOG_WARN("Failed to close log file");
+        }
+    }
 }
