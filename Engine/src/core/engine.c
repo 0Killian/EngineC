@@ -2,10 +2,7 @@
 #include "application.h"
 #include "platform/platform.h"
 #include "core/log.h"
-
-// TODO: Remove these
-#include <stdlib.h>
-#include <string.h>
+#include "core/memory.h"
 
 typedef struct engine_state {
     /** @brief The state of the platform layer. */
@@ -23,10 +20,15 @@ typedef struct engine_state {
  * @retval FALSE Failure
  */
 b8 engine_init(application* app) {
-    // TODO: Allocate using memory management layer
+    // Initialize the memory management system
+    if (!mem_init()) {
+        LOG_ERROR("Failed to initialize the memory management system");
+        return FALSE;
+    }
+
     // Allocating engine state
-    app->engine_state = malloc(sizeof(engine_state));
-    memset(app->engine_state, 0, sizeof(engine_state));
+    app->engine_state = mem_alloc(MEMORY_TAG_UNKNOWN, sizeof(engine_state));
+    mem_zero(app->engine_state, sizeof(engine_state));
     engine_state* state = (engine_state*)app->engine_state;
 
     // Initializing platform layer
@@ -36,7 +38,7 @@ b8 engine_init(application* app) {
         return FALSE;
     }
 
-    state->platform_state = malloc(size_requirement);
+    state->platform_state = mem_alloc(MEMORY_TAG_UNKNOWN, size_requirement);
     if (!platform_init(state->platform_state, &size_requirement)) {
         LOG_ERROR("Failed to initialize the platform layer");
         return FALSE;
@@ -48,7 +50,7 @@ b8 engine_init(application* app) {
         return FALSE;
     }
 
-    state->logging_state = malloc(size_requirement);
+    state->logging_state = mem_alloc(MEMORY_TAG_UNKNOWN, size_requirement);
     if (!log_init(state->logging_state, &size_requirement)) {
         LOG_ERROR("Failed to initialize the logging system");
         return FALSE;
@@ -63,10 +65,9 @@ b8 engine_init(application* app) {
  * @param[in] app A pointer to the application.
  */
 void engine_deinit(struct application* app) {
-    // TODO: Deallocate using memory management layer
     engine_state* state = (engine_state*)app->engine_state;
 
-    // Deinitializing layers and systems
+    // Deinitialize layers and systems
     if (state->logging_state) {
         log_deinit(state->logging_state);
     }
@@ -75,10 +76,13 @@ void engine_deinit(struct application* app) {
         platform_deinit(state->platform_state);
     }
 
-    // Deallocating engine state
-    free(state->logging_state);
-    free(state->platform_state);
-    free(state);
+    // Free engine state
+    mem_free(state->logging_state);
+    mem_free(state->platform_state);
+    mem_free(state);
+
+    // Deinitialize the memory management system, reporting any leaks in the process
+    mem_deinit();
 }
 
 /**

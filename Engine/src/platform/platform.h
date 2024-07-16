@@ -3,7 +3,7 @@
  * @author Killian Bellouard (killianbellouard@gmail.com)
  * @brief This file defines the interface of the platform layer. Each platform must implement this interface in a separate .c
  * file.
- * @version 0.2
+ * @version 0.3
  * @date 2024-06-11
  */
 
@@ -37,6 +37,8 @@ typedef enum platform_console_color {
  * Should be called twice, once to get the required allocation size (with state == NULL), and a second time to actually
  * initialize the platform (with state != NULL).
  * 
+ * @note It is safe to call @ref platform_allocate and @ref platform_free before calling this function.
+ * 
  * @param[in] state A pointer to a memory region to store the state of the platform layer. To obtain the needed size, pass NULL.
  * @param[out] size_requirement A pointer to the size of the memory that should be allocated.
  * @retval TRUE Success
@@ -54,19 +56,47 @@ void platform_deinit(void* state);
 /**
  * @brief Writes a message to the console.
  * 
- * Message considered as errors should use @ref platform_console_write_error instead
+ * Message considered as errors should use @ref platform_console_write_error instead.
  * 
- * @param[in] foreground The color of the text
- * @param[in] background The color of the background
- * @param[in] message The message to write
+ * @param[in] foreground The color of the text.
+ * @param[in] background The color of the background.
+ * @param[in] message The message to write.
  */
 void platform_console_write(platform_console_color foreground, platform_console_color background, const char* message);
 
 /**
  * @brief Writes an error message to the console.
  * 
- * @param[in] foreground The color of the text
- * @param[in] background The color of the background
- * @param[in] message The message to write
+ * @param[in] foreground The color of the text.
+ * @param[in] background The color of the background.
+ * @param[in] message The message to write.
  */
 void platform_console_write_error(platform_console_color foreground, platform_console_color background, const char* message);
+
+/**
+ * @brief Allocates a region of memory.
+ * 
+ * @param[in] size The size of the region to allocate.
+ * @retval A pointer to the allocated region.
+ */
+void* platform_allocate(u64 size);
+
+/**
+ * @brief Frees a region of memory.
+ * 
+ * @param[in] pointer A pointer to the region to free.
+ */
+void platform_free(void* pointer);
+
+#ifdef DEBUG
+/**
+ * @brief Get the address of the caller of the current function.
+ * 
+ * @note The "current" function is the caller of this function, so the address retrieved is the 2nd address of the call stack.
+ * 
+ * @warning The MSVC compiler does not provide call stack walking intrinsics. In this case, the address will always be NULL.
+ * 
+ * @return The address of the caller of the current function, or NULL if MSVC is used.
+ */
+void* platform_get_caller();
+#endif

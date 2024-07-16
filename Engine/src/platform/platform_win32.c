@@ -1,4 +1,5 @@
 #include "platform.h"
+#include "core/log.h"
 
 #if PLATFORM_WINDOWS
 
@@ -35,6 +36,13 @@ b8 platform_init(void* state_storage, u64* size_requirement) {
 
     state = state_storage;
 
+    // Detect corruptions and terminate the application at any time
+    #ifdef DEBUG
+        if(!HeapSetInformation(GetProcessHeap(), HeapEnableTerminationOnCorruption, NULL, 0)) {
+            LOG_WARN("HeapSetInformation failed with code %d. Application will run without heap corruption detection.", GetLastError());
+        }
+    #endif
+
     return TRUE;
 }
 
@@ -62,11 +70,11 @@ static void console_write(u8 color, const char* message, HANDLE console_handle) 
 /**
  * @brief Writes a message to the console.
  * 
- * Message considered as errors should use @ref platform_console_write_error instead
+ * Message considered as errors should use @ref platform_console_write_error instead.
  * 
- * @param[in] foreground The color of the text
- * @param[in] background The color of the background
- * @param[in] message The message to write
+ * @param[in] foreground The color of the text.
+ * @param[in] background The color of the background.
+ * @param[in] message The message to write.
  */
 void platform_console_write(platform_console_color foreground, platform_console_color background, const char* message) {
     console_write(convert_platform_color(foreground, background), message, GetStdHandle(STD_OUTPUT_HANDLE));
@@ -75,12 +83,52 @@ void platform_console_write(platform_console_color foreground, platform_console_
 /**
  * @brief Writes an error message to the console.
  * 
- * @param[in] foreground The color of the text
- * @param[in] background The color of the background
- * @param[in] message The message to write
+ * @param[in] foreground The color of the text.
+ * @param[in] background The color of the background.
+ * @param[in] message The message to write.
  */
 void platform_console_write_error(platform_console_color foreground, platform_console_color background, const char* message) {
     console_write(convert_platform_color(foreground, background), message, GetStdHandle(STD_ERROR_HANDLE));
 }
+
+
+/**
+ * @brief Allocates a region of memory.
+ * 
+ * @param[in] size The size of the region to allocate.
+ * @retval A pointer to the allocated region.
+ */
+void* platform_allocate(u64 size) {
+    return HeapAlloc(GetProcessHeap(), 0, size);
+}
+
+/**
+ * @brief Frees a region of memory.
+ * 
+ * @param[in] pointer A pointer to the region to free.
+ */
+void platform_free(void* pointer) {
+    HeapFree(GetProcessHeap(), 0, pointer);
+}
+
+#ifdef DEBUG
+/**
+ * @brief Get the address of the caller of the current function.
+ * 
+ * @note The "current" function is the caller of this function, so the address retrieved is the 2nd address of the call stack.
+ * 
+ * @return The address of the caller of the current function.
+ */
+void* platform_get_caller() {
+    #ifndef _MSC_VER
+        return __builtin_return_address(1);
+    #else
+        #ifndef HIDE_MSVC_WARNING
+            #warning "platform_get_caller will always return NULL on MSVC. To get rid of this warning, define HIDE_MSVC_WARNING."
+        #endif
+        return NULL;
+    #endif
+}
+#endif
 
 #endif
