@@ -131,4 +131,45 @@ void* platform_get_caller() {
 }
 #endif
 
+/**
+ * @brief Opens a Dynamic Library file.
+ * 
+ * @param [in] name The name of the library to open.
+ * @param [out] result A pointer to a memory region to store the result.
+ * 
+ * @retval TRUE Success
+ * @retval FALSE Failure
+ */
+b8 platform_dynamic_library_open(const char* name, dynamic_library* result) {
+    *result = LoadLibraryA(name);
+    return *result != NULL;
+}
+
+/**
+ * @brief Closes a Dynamic Library file.
+ * 
+ * @param [in] library The library to close.
+ * 
+ * @retval TRUE Success
+ * @retval FALSE Failure
+ */
+b8 platform_dynamic_library_close(dynamic_library library) {
+    return FreeLibrary(library) == TRUE;
+}
+
+/**
+ * @brief Gets a symbol from a Dynamic Library file.
+ * 
+ * @param [in] library The library to get the symbol from.
+ * @param [in] name The name of the symbol to get.
+ * @param [out] result A pointer to a memory region to store the result.
+ * 
+ * @retval TRUE Success
+ * @retval FALSE Failure
+ */
+b8 platform_dynamic_library_get_symbol(dynamic_library library, const char* name, void** result) {
+    *result = GetProcAddress(library, name);
+    return *result != NULL;
+}
+
 #endif

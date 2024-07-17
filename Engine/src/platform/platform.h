@@ -3,7 +3,7 @@
  * @author Killian Bellouard (killianbellouard@gmail.com)
  * @brief This file defines the interface of the platform layer. Each platform must implement this interface in a separate .c
  * file.
- * @version 0.3
+ * @version 0.4
  * @date 2024-06-11
  */
 
@@ -30,6 +30,8 @@ typedef enum platform_console_color {
     PLATFORM_CONSOLE_COLOR_LIGHT_YELLOW,
     PLATFORM_CONSOLE_COLOR_BRIGHT_WHITE
 } platform_console_color;
+
+typedef void* dynamic_library;
 
 /**
  * @brief Initializes the platform layer.
@@ -100,3 +102,36 @@ void platform_free(void* pointer);
  */
 void* platform_get_caller();
 #endif
+
+/**
+ * @brief Opens a Dynamic Library file.
+ * 
+ * @param [in] name The name of the library to open.
+ * @param [out] result A pointer to a memory region to store the result.
+ * 
+ * @retval TRUE Success
+ * @retval FALSE Failure
+ */
+b8 platform_dynamic_library_open(const char* name, dynamic_library* result);
+
+/**
+ * @brief Closes a Dynamic Library file.
+ * 
+ * @param [in] library The library to close.
+ * 
+ * @retval TRUE Success
+ * @retval FALSE Failure
+ */
+b8 platform_dynamic_library_close(dynamic_library library);
+
+/**
+ * @brief Gets a symbol from a Dynamic Library file.
+ * 
+ * @param [in] library The library to get the symbol from.
+ * @param [in] name The name of the symbol to get.
+ * @param [out] result A pointer to a memory region to store the result.
+ * 
+ * @retval TRUE Success
+ * @retval FALSE Failure
+ */
+b8 platform_dynamic_library_get_symbol(dynamic_library library, const char* name, void** result);
