@@ -66,7 +66,7 @@ void mem_deinit() {
     for(u64 i = 0; i < MEMORY_TAG_MAX_TAGS; i++) {
         if(state->allocation_count[i] != 0) {
             LOG_WARN("Memory leak of %llu bytes (%llu allocations) in tag %s",
-                state->allocated_size[i], state->allocation_count, TAG_LABELS[i]);
+                state->allocated_size[i], state->allocation_count[i], TAG_LABELS[i]);
 
             #ifdef DEBUG
                 region_header* current = state->regions_list_head[i];
