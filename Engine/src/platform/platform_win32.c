@@ -343,6 +343,7 @@ void platform_window_destroy(window *window) {
     mem_free(window->title);
     mem_free(window->platform_state);
     mem_zero(window, sizeof(window));
+    mem_free(window);
 
     b8 found = FALSE;
     for (u32 i = 0; i < state->windows.count; i++) {
