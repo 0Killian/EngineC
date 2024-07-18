@@ -29,7 +29,7 @@
  */
 #define DYNARRAY_CLEAR(array) do { \
     if ((array).data) { \
-        free((array).data); \
+        mem_free((array).data); \
     } \
     (array).data = NULL; \
     (array).count = 0; \
