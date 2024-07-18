@@ -33,6 +33,9 @@ project "Engine"
     includedirs { "Engine/src" }
     defines { "EXPORT" }
 
+    filter "system:windows"
+        links { "gdi32" }
+
 project "TestBed"
     basedir "TestBed"
     kind "ConsoleApp"

@@ -11,6 +11,10 @@
 
 #include "common.h"
 
+// Forward declarations of internal structures.
+struct platform_state;
+struct window_platform_state;
+
 /** @brief The console colors used by the platform layer. */
 typedef enum platform_console_color {
     PLATFORM_CONSOLE_COLOR_BLACK = 0,
@@ -31,7 +35,49 @@ typedef enum platform_console_color {
     PLATFORM_CONSOLE_COLOR_BRIGHT_WHITE
 } platform_console_color;
 
+/** @brief A handle to a Dynamic Library. */
 typedef void* dynamic_library;
+
+/** @brief A struct describing the window to create. */
+typedef struct window_config {
+    i32 position_x;
+    i32 position_y;
+    u32 width;
+    u32 height;
+    const char *title;
+    const char *name;
+} window_config;
+
+/** @brief The state of a window. */
+typedef struct window {
+    /** @brief The title of the window. */
+    char *title;
+
+    /** @brief The width of the window in pixels. */
+    u32 width;
+    /** @brief The height of the window in pixels. */
+    u32 height;
+
+    /** @brief The pixel density of this window (read-only). */
+    f32 device_pixel_ratio;
+
+    /** @brief Whether the window is currently being resized. */
+    b8 resizing;
+    /** @brief The number of frames since the last resize. */
+    u16 frames_since_resize;
+
+    /** @brief The state of the platform layer. */
+    struct window_platform_state *platform_state;
+} window;
+
+// Callbacks
+typedef void (*platform_window_closed_callback)(const window *window);
+typedef void (*platform_window_resized_callback)(const window *window);
+// TODO: Mouse Button
+// TODO: Mouse Movement
+// TODO: Mouse Wheel
+// TODO: Key
+
 
 /**
  * @brief Initializes the platform layer.
@@ -135,3 +181,67 @@ b8 platform_dynamic_library_close(dynamic_library library);
  * @retval FALSE Failure
  */
 b8 platform_dynamic_library_get_symbol(dynamic_library library, const char* name, void** result);
+
+/**
+ * @brief Creates a new window from the specified config.
+ * 
+ * @note The window is shown immediately.
+ * 
+ * @param [in] config The config of the window to create.
+ * @param [out] result A pointer to a memory region to store the result pointer.
+ * 
+ * @retval TRUE Success
+ * @retval FALSE Failure
+ */
+b8 platform_window_create(const window_config* config, window** result);
+
+/**
+ * @brief Destroys the given window.
+ * 
+ * @param [in] window The window to destroy.
+ */
+void platform_window_destroy(window *window);
+
+/**
+ * @brief Sets the window title.
+ * 
+ * @note The title is copied, so it is safe to use a temporary string.
+ * 
+ * @param [in] window The window to set the title of.
+ * @param [in] title The title to set.
+ * 
+ * @retval TRUE Success
+ * @retval FALSE Failure
+ */
+b8 platform_window_set_title(window* window, const char* title);
+
+/**
+ * @brief Retrieves platform-specific messages and process them.
+ * 
+ * @retval TRUE Success
+ * @retval FALSE Failure
+ */
+b8 platform_process_messages();
+
+/**
+ * @brief Registers the callback to be called when the window is resized.
+ * 
+ * @note There is only one callback registered at a time.
+ * 
+ * @param [in] callback The callback to register.
+ */
+void platform_register_window_resized_callback(platform_window_resized_callback callback);
+
+/**
+ * @brief Registers the callback to be called when the window is closed.
+ * 
+ * @note There is only one callback registered at a time.
+ * 
+ * @param [in] callback The callback to register.
+ */
+void platform_register_window_closed_callback(platform_window_closed_callback callback);
+
+// TODO: Mouse Button
+// TODO: Mouse Movement
+// TODO: Mouse Wheel
+// TODO: Key

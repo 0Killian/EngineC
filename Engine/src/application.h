@@ -9,6 +9,7 @@
 #pragma once
 
 #include "common.h"
+#include "platform/platform.h"
 
 /**
  * @brief Holds the state of the application and the engine.
@@ -38,4 +39,7 @@ typedef struct application {
 
     /** @brief The state of the engine. Managed by the engine. */
     void* engine_state;
+
+    /** @brief The configuration of the window. */
+    window_config window_config;
 } application;

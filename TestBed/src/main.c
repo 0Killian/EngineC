@@ -25,5 +25,13 @@ void deinit(application* app) {
 b8 create_application(application* app) {
     app->init = init;
     app->deinit = deinit;
+
+    app->window_config.name = "main";
+    app->window_config.title = "Main";
+    app->window_config.position_x = 300;
+    app->window_config.position_y = 300;
+    app->window_config.width = 800;
+    app->window_config.height = 600;
+
     return TRUE;
 }
