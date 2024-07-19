@@ -23,6 +23,23 @@ typedef struct engine_state {
 engine_state *state;
 
 /**
+ * @brief Initializes the critical components of the engine, like the memory system.
+ * 
+ * @note This function must be called first to make sure that the application can use
+ * early systems in @ref create_application.
+ * 
+ * @retval TRUE Success
+ * @retval FALSE Failure
+ */
+API b8 engine_early_init() {
+    // Initialize the memory management system
+    if (!mem_init()) {
+        LOG_ERROR("Failed to initialize the memory management system");
+        return FALSE;
+    }
+}
+
+/**
  * @brief Initializes the engine, its layers and systems.
  * 
  * @param[in] app A pointer to the application.
@@ -31,12 +48,6 @@ engine_state *state;
  * @retval FALSE Failure
  */
 b8 engine_init(application *app) {
-    // Initialize the memory management system
-    if (!mem_init()) {
-        LOG_ERROR("Failed to initialize the memory management system");
-        return FALSE;
-    }
-
     // Allocating engine state
     app->engine_state = mem_alloc(MEMORY_TAG_ENGINE, sizeof(engine_state));
     mem_zero(app->engine_state, sizeof(engine_state));
@@ -97,15 +108,15 @@ void engine_deinit(struct application *app) {
     // Deinitialize layers and systems
     if (state->logging_state) {
         log_deinit(state->logging_state);
+        mem_free(state->logging_state);
     }
 
     if (state->platform_state) {
         platform_deinit(state->platform_state);
+        mem_free(state->platform_state);
     }
 
     // Free engine state
-    mem_free(state->logging_state);
-    mem_free(state->platform_state);
     mem_free(state);
 
     // Deinitialize the memory management system, reporting any leaks in the process

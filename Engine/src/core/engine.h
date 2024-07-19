@@ -14,6 +14,17 @@
 struct application;
 
 /**
+ * @brief Initializes the critical components of the engine, like the memory system.
+ * 
+ * @note This function must be called first to make sure that the application can use
+ * early systems in @ref create_application.
+ * 
+ * @retval TRUE Success
+ * @retval FALSE Failure
+ */
+API b8 engine_early_init();
+
+/**
  * @brief Initializes the engine, its layers and systems.
  * 
  * @param[in] app A pointer to the application.

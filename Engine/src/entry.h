@@ -34,41 +34,48 @@ extern b8 create_application(application* app);
  * @brief The entry point of the application.
  *
  * @retval 0 Success
- * @retval 1 Application creation error
- * @retval 2 Application hooks not defined
- * @retval 3 Engine initialization error
- * @retval 4 Application initialization error
- * @retval 5 Engine run error
+ * @retval 1 Early initalization error
+ * @retval 2 Application creation error
+ * @retval 3 Application hooks not defined
+ * @retval 4 Engine initialization error
+ * @retval 5 Application initialization error
+ * @retval 6 Engine run error
  */
 int main(void) {
+    // Perform early initalization routines of the engine
+    if (!engine_early_init()) {
+        LOG_ERROR("Failed to initialize engine");
+        return 1;
+    }
+
     // Create the application
     application app = {};
     if (!create_application(&app)) {
         LOG_ERROR("Failed to create application");
-        return 1;
+        return 2;
     }
 
     // Ensure that all necessary fields are set
     if (!app.init || !app.deinit) {
         LOG_ERROR("Application hooks not defined");
-        return 2;
+        return 3;
     }
 
     // Initialization
     if (!engine_init(&app)) {
         LOG_ERROR("Failed to initialize engine");
-        return 3;
+        return 4;
     }
 
     if (!app.init(&app)) {
         LOG_ERROR("Failed to initialize application");
-        return 4;
+        return 5;
     }
 
     // Start the main loop
     if (!engine_run(&app)) {
         LOG_ERROR("Failed to run engine");
-        return 5;
+        return 6;
     }
 
     // Deinitialization
