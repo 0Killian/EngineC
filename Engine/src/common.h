@@ -38,3 +38,6 @@ typedef u8 b8;
         #define API
     #endif
 #endif
+
+typedef u32 uuid;
+#define INVALID_UUID 0xFFFFFFFF
