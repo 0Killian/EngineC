@@ -37,12 +37,12 @@
 } while (FALSE)
 
 /**
- * @brief Resizes a dynamic array to the given capacity.
+ * @brief Reserves a new capacity for the array.
  * 
  * @param [in] array The array to resize.
  * @param [in] capacity The new capacity of the array.
  */
-#define DYNARRAY_RESIZE(array, cap) do { \
+#define DYNARRAY_RESERVE(array, cap) do { \
     if (array.data) { \
         void *new_data = mem_alloc(MEMORY_TAG_DYNARRAY, (cap) * sizeof((array).data[0])); \
         u64 copy_size = (array).count * sizeof((array).data[0]); \
@@ -64,7 +64,7 @@
  */
 #define DYNARRAY_PUSH(array, element) do { \
     if ((array).count == (array).capacity) { \
-        DYNARRAY_RESIZE(array, (array).capacity * 2 + 1); \
+        DYNARRAY_RESERVE(array, (array).capacity * 2 + 1); \
     } \
     (array).data[(array).count++] = (element); \
 } while (FALSE)
