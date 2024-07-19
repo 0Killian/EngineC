@@ -3,6 +3,7 @@
 #include "platform/platform.h"
 #include "core/log.h"
 #include "core/memory.h"
+#include "core/event.h"
 
 static void on_window_closed(const window *window);
 static void on_window_resized(const window *window);
@@ -12,6 +13,9 @@ typedef struct engine_state {
     void *platform_state;
     /** @brief The state of the logging system. */
     void *logging_state;
+    /** @brief The state of the event system. */
+    void *event_state;
+
     /** @brief The window state. */
     window *window;
     /** @brief Whether the engine is running. */
@@ -81,6 +85,18 @@ b8 engine_init(application *app) {
         return FALSE;
     }
 
+    // Initializing event system
+    if (!event_init(NULL, &size_requirement)) {
+        LOG_ERROR("Failed to initialize the event system");
+        return FALSE;
+    }
+
+    state->event_state = mem_alloc(MEMORY_TAG_ENGINE, size_requirement);
+    if (!event_init(state->event_state, &size_requirement)) {
+        LOG_ERROR("Failed to initialize the event system");
+        return FALSE;
+    }
+
     // Create the window
     if (!platform_window_create(&app->window_config, &state->window)) {
         LOG_ERROR("Failed to create the window");
@@ -100,12 +116,21 @@ b8 engine_init(application *app) {
 void engine_deinit(struct application *app) {
     state->is_running = FALSE;
 
+    if (!event_fire(EVENT_TYPE_APPLICATION_QUIT, (event_data) {})) {
+        LOG_WARN("Failed to fire EVENT_TYPE_APPLICATION_QUIT");
+    }
+
     // Destroy the window
     if (state->window) {
         platform_window_destroy(state->window);
     }
 
     // Deinitialize layers and systems
+    if (state->event_state) {
+        event_deinit(state->event_state);
+        mem_free(state->event_state);
+    }
+
     if (state->logging_state) {
         log_deinit(state->logging_state);
         mem_free(state->logging_state);

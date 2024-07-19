@@ -2,6 +2,7 @@
 #include "core/log.h"
 #include "core/dynamic_array.h"
 #include "core/memory.h"
+#include "core/event.h"
 #include <stdio.h>
 
 #if PLATFORM_WINDOWS
@@ -484,8 +485,16 @@ LRESULT wnd_proc(window *window, UINT msg, WPARAM wp, LPARAM lp) {
             if (state->window_resized_callback != NULL) {
                 state->window_resized_callback(window);
             }
+
+            event_data data = { .vec2f = { (f32)width, (f32)height } };
+
+            if (!event_fire(EVENT_TYPE_WINDOW_RESIZED, data)) {
+                LOG_WARN("Failed to fire EVENT_TYPE_WINDOW_RESIZED");
+            }
         }
     } break;
+
+    // TODO: Mouse and Key events
     default:
         return DefWindowProcA(window->platform_state->handle, msg, wp, lp);
     }
