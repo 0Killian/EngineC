@@ -135,5 +135,7 @@ API void log_deinit(void*) {
         if (!result) {
             LOG_WARN("Failed to close log file");
         }
+
+        state = NULL;
     }
 }
