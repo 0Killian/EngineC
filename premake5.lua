@@ -36,6 +36,17 @@ project "Engine"
     filter "system:windows"
         links { "gdi32" }
 
+project "VulkanRendererBackend"
+    basedir "VulkanRendererBackend"
+    kind "SharedLib"
+    language "C"
+    cdialect "c17"
+    targetdir "bin/%{cfg.buildcfg}"
+    files { "VulkanRendererBackend/src/**.h", "VulkanRendererBackend/src/**.c" }
+    includedirs { "VulkanRendererBackend/src", os.getenv("VULKAN_SDK") .. "/include", "Engine/src" }
+    defines { "PLUGIN_EXPORT" }
+    links { os.getenv("VULKAN_SDK") .. "/lib/vulkan-1", "Engine" }
+
 project "TestBed"
     basedir "TestBed"
     kind "ConsoleApp"
@@ -45,3 +56,4 @@ project "TestBed"
     files { "TestBed/src/**.h", "TestBed/src/**.c" }
     includedirs { "TestBed/src", "Engine/src" }
     links { "Engine" }
+    dependson { "VulkanRendererBackend" }
