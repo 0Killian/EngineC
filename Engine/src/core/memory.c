@@ -37,7 +37,8 @@ static const char* TAG_LABELS[MEMORY_TAG_MAX_TAGS] = {
     "ENGINE",
     "PLATFORM",
     "STRING",
-    "DYNARRAY"
+    "DYNARRAY",
+    "RENDERER"
 };
 
 static memory_state* state = NULL;

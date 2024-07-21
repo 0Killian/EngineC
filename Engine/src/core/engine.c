@@ -6,6 +6,7 @@
 #include "core/event.h"
 #include "core/input.h"
 #include "core/plugins.h"
+#include "renderer/renderer.h"
 
 static void on_window_closed(const window *window);
 static void on_window_resized(event_type type, event_data data, void *user_data);
@@ -21,6 +22,8 @@ typedef struct engine_state {
     void *input_state;
     /** @brief The state of the plugins system. */
     void *plugins_state;
+    /** @brief The state of the renderer system. */
+    void *renderer_state;
 
     /** @brief The window state. */
     window *window;
@@ -130,6 +133,18 @@ b8 engine_init(application *app) {
         return FALSE;
     }
 
+    // Initializing renderer system
+    if (!renderer_init(NULL, &size_requirement)) {
+        LOG_ERROR("Failed to initialize the renderer system");
+        return FALSE;
+    }
+
+    state->renderer_state = mem_alloc(MEMORY_TAG_ENGINE, size_requirement);
+    if (!renderer_init(state->renderer_state, &size_requirement)) {
+        LOG_ERROR("Failed to initialize the renderer system");
+        return FALSE;
+    }
+
     // Create the window
     if (!platform_window_create(&app->window_config, &state->window)) {
         LOG_ERROR("Failed to create the window");
@@ -165,6 +180,11 @@ void engine_deinit(struct application *app) {
     }
 
     // Deinitialize layers and systems
+    if (state->renderer_state) {
+        renderer_deinit(state->renderer_state);
+        mem_free(state->renderer_state);
+    }
+
     if (state->plugins_state) {
         plugins_deinit(state->plugins_state);
         mem_free(state->plugins_state);

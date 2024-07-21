@@ -18,6 +18,7 @@ typedef enum memory_tag {
     MEMORY_TAG_PLATFORM, // Platform specific data
     MEMORY_TAG_STRING, // Strings
     MEMORY_TAG_DYNARRAY, // Dynamic arrays
+    MEMORY_TAG_RENDERER, // Renderer
     MEMORY_TAG_MAX_TAGS
 } memory_tag;
 
