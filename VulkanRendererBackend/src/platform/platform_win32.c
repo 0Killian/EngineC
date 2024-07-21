@@ -44,3 +44,17 @@ b8 vulkan_platform_surface_create(vulkan_state *state, const window *window) {
 void vulkan_platform_get_required_extensions(extension_dynarray *extensions) {
     DYNARRAY_PUSH(*extensions, "VK_KHR_win32_surface");
 }
+
+/**
+ * @brief Indicates if the given queue on the given device supports presentation.
+ * 
+ * @param[in] state The state of the renderer.
+ * @param[in] device The device to check.
+ * @param[in] queue_family_index The queue family index to check.
+ * 
+ * @retval TRUE The queue supports presentation.
+ * @retval FALSE The queue does not support presentation.
+ */
+b8 vulkan_platform_queue_supports_present(vulkan_state *state, VkPhysicalDevice device, u32 queue_family_index) {
+    return vkGetPhysicalDeviceWin32PresentationSupportKHR(device, queue_family_index) == VK_TRUE;
+}

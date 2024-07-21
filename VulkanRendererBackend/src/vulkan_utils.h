@@ -11,6 +11,22 @@
 #include <common.h>
 #include <vulkan/vulkan.h>
 #include <core/log.h>
+#include "internal_types.h"
+
+#ifdef DEBUG
+#define VK_SET_OBJECT_DEBUG_NAME(state, type, object, name) do { \
+        const VkDebugUtilsObjectNameInfoEXT name_info = { \
+            VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT, \
+            NULL, \
+            type, \
+            (u64)object, \
+            name \
+        }; \
+        result = state->set_debug_utils_object_name(state->device.logical_device, &name_info); \
+    } while(0)
+#else
+#define VK_SET_OBJECT_DEBUG_NAME()
+#endif
 
 /**
  * @brief Converts a vulkan result to a string.

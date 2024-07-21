@@ -30,3 +30,15 @@ b8 vulkan_platform_surface_create(vulkan_state *state, const window *window);
  * @param[in,out] extensions The list of extensions to append to.
  */
 void vulkan_platform_get_required_extensions(extension_dynarray *extensions);
+
+/**
+ * @brief Indicates if the given queue on the given device supports presentation.
+ * 
+ * @param[in] state The state of the renderer.
+ * @param[in] device The device to check.
+ * @param[in] queue_family_index The queue family index to check.
+ * 
+ * @retval TRUE The queue supports presentation.
+ * @retval FALSE The queue does not support presentation.
+ */
+b8 vulkan_platform_queue_supports_present(vulkan_state *state, VkPhysicalDevice device, u32 queue_family_index);

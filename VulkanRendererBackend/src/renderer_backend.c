@@ -2,6 +2,7 @@
 #include "internal_types.h"
 #include <core/memory.h>
 #include "platform/vulkan_platform.h"
+#include "vulkan_device.h"
 
 #define LOG_SCOPE "VULKAN RENDERER BACKEND"
 #include <core/log.h>
@@ -44,6 +45,16 @@ b8 vulkan_init(renderer_backend_interface *interface, renderer_backend_config *c
         return FALSE;
     }
 
+    if (!vulkan_device_select(state)) {
+        LOG_ERROR("Failed to select vulkan device");
+        return FALSE;
+    }
+
+    if (!vulkan_device_create(state)) {
+        LOG_ERROR("Failed to create vulkan device");
+        return FALSE;
+    }
+
     LOG_INFO("Vulkan renderer backend initialized");
 
     return TRUE;
@@ -56,6 +67,8 @@ void vulkan_deinit(renderer_backend_interface *interface) {
         LOG_ERROR("Vulkan renderer backend not initialized");
         return;
     }
+
+    vulkan_device_destroy(state);
 
     if (state->surface != VK_NULL_HANDLE) {
         vkDestroySurfaceKHR(state->instance, state->surface, state->allocation_callbacks);
