@@ -43,7 +43,7 @@
  * @param [in] capacity The new capacity of the array.
  */
 #define DYNARRAY_RESERVE(array, cap) do { \
-    if (array.data) { \
+    if ((array).data) { \
         void *new_data = mem_alloc(MEMORY_TAG_DYNARRAY, (cap) * sizeof((array).data[0])); \
         u64 copy_size = (array).count * sizeof((array).data[0]); \
         mem_copy(new_data, (array).data, copy_size); \

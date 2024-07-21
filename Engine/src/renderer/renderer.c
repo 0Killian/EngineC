@@ -20,11 +20,12 @@ static renderer_system_state *state = NULL;
  * 
  * @param[in] state A pointer to a memory region to store the state of the renderer system. To obtain the needed size, pass NULL.
  * @param[out] size_requirement A pointer to the size of the memory that should be allocated.
+ * @param[in] window A pointer to the window to use for the renderer.
  * 
  * @retval TRUE Success
  * @retval FALSE Failure
  */
-b8 renderer_init(void *state_storage, u64 *size_requirement) {
+b8 renderer_init(void *state_storage, u64 *size_requirement, const window *window) {
     if (state_storage == NULL) {
         *size_requirement = sizeof(renderer_system_state);
         return TRUE;
@@ -41,7 +42,7 @@ b8 renderer_init(void *state_storage, u64 *size_requirement) {
     renderer_backend_interface *interface = (renderer_backend_interface*)state->backend_plugin.interface.state;
     renderer_backend_config config = { "Vulkan Renderer" };
 
-    if (!interface->init(interface, &config)) {
+    if (!interface->init(interface, &config, window)) {
         LOG_ERROR("Failed to initialize vulkan renderer backend");
         return FALSE;
     }

@@ -9,6 +9,7 @@
 #pragma once
 
 #include "common.h"
+#include "platform/platform.h"
 
 /** @brief The configuration of the renderer backend. */
 typedef struct renderer_backend_config {
@@ -26,11 +27,12 @@ typedef struct renderer_backend_interface {
      * 
      * @param[in,out] backend A pointer to the backend interface.
      * @param[in] config A pointer to the configuration.
+     * @param[in] window A pointer to the window.
      * 
      * @retval TRUE Success
      * @retval FALSE Failure
      */
-    b8 (*init)(struct renderer_backend_interface *backend, renderer_backend_config *config);
+    b8 (*init)(struct renderer_backend_interface *backend, renderer_backend_config *config, const window *window);
 
     /**
      * @brief Deinitializes the renderer backend.

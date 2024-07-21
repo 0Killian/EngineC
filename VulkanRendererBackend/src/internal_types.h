@@ -10,7 +10,12 @@
 
 #include <common.h>
 #include <vulkan/vulkan.h>
+#include <core/dynamic_array.h>
 
 typedef struct vulkan_state {
+    VkAllocationCallbacks *allocation_callbacks;
     VkInstance instance;
+    VkSurfaceKHR surface;
 } vulkan_state;
+
+typedef DYNARRAY(const char *) extension_dynarray;

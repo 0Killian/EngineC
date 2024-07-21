@@ -133,21 +133,21 @@ b8 engine_init(application *app) {
         return FALSE;
     }
 
+    // Create the window
+    if (!platform_window_create(&app->window_config, &state->window)) {
+        LOG_ERROR("Failed to create the window");
+        return FALSE;
+    }
+    
     // Initializing renderer system
-    if (!renderer_init(NULL, &size_requirement)) {
+    if (!renderer_init(NULL, &size_requirement, state->window)) {
         LOG_ERROR("Failed to initialize the renderer system");
         return FALSE;
     }
 
     state->renderer_state = mem_alloc(MEMORY_TAG_ENGINE, size_requirement);
-    if (!renderer_init(state->renderer_state, &size_requirement)) {
+    if (!renderer_init(state->renderer_state, &size_requirement, state->window)) {
         LOG_ERROR("Failed to initialize the renderer system");
-        return FALSE;
-    }
-
-    // Create the window
-    if (!platform_window_create(&app->window_config, &state->window)) {
-        LOG_ERROR("Failed to create the window");
         return FALSE;
     }
 
@@ -174,17 +174,18 @@ void engine_deinit(struct application *app) {
 
     state->on_window_resized_handler = INVALID_UUID;
 
+    // Deinitialize renderer system
+    if (state->renderer_state) {
+        renderer_deinit(state->renderer_state);
+        mem_free(state->renderer_state);
+    }
+
     // Destroy the window
     if (state->window) {
         platform_window_destroy(state->window);
     }
 
     // Deinitialize layers and systems
-    if (state->renderer_state) {
-        renderer_deinit(state->renderer_state);
-        mem_free(state->renderer_state);
-    }
-
     if (state->plugins_state) {
         plugins_deinit(state->plugins_state);
         mem_free(state->plugins_state);

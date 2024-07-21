@@ -10,6 +10,7 @@
 #pragma once
 
 #include "common.h"
+#include "platform/platform.h"
 
 /**
  * @brief Initializes the renderer system.
@@ -21,11 +22,12 @@
  * 
  * @param[in] state A pointer to a memory region to store the state of the renderer system. To obtain the needed size, pass NULL.
  * @param[out] size_requirement A pointer to the size of the memory that should be allocated.
+ * @param[in] window A pointer to the window to use for the renderer.
  * 
  * @retval TRUE Success
  * @retval FALSE Failure
  */
-b8 renderer_init(void *state, u64 *size_requirement);
+b8 renderer_init(void *state, u64 *size_requirement, const window *window);
 
 /**
  * @brief Deinitializes the renderer system.

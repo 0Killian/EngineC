@@ -16,11 +16,12 @@
  * 
  * @param[in] interface A pointer to the interface of the renderer backend.
  * @param[in] config A pointer to the configuration of the renderer backend.
+ * @param[in] window A pointer to the window.
  * 
  * @retval TRUE Success
  * @retval FALSE Failure
  */
-b8 vulkan_init(renderer_backend_interface *interface, renderer_backend_config *config);
+b8 vulkan_init(renderer_backend_interface *interface, renderer_backend_config *config, const window *window);
 
 /**
  * @brief Deinitializes the vulkan renderer backend.
