@@ -2,7 +2,7 @@
  * @file event.h
  * @author Killian Bellouard (killianbellouard@gmail.com)
  * @brief This file defines the event system.
- * @version 0.1
+ * @version 0.2
  * @date 2024-07-19
  */
 
@@ -10,6 +10,7 @@
 
 #include "common.h"
 #include "math/vec2.h"
+#include "input.h"
 
 /** @brief The different types of events. */
 typedef enum event_type {
@@ -21,67 +22,67 @@ typedef enum event_type {
 
     /**
      * @brief Event fired when a key is pressed.
-     * The @ref event_data used is @ref event_key.key
+     * The @ref event_data used is @ref event_key.key (the key that was pressed)
      */
     EVENT_TYPE_KEY_PRESSED,
 
     /**
      * @brief Event fired after @ref EVENT_TYPE_KEY_PRESSED is fired and the pressed key is released.
-     * The @ref event_data used is @ref event_data.key
+     * The @ref event_data used is @ref event_data.key (the key that was released)
      */
     EVENT_TYPE_KEY_RELEASED,
 
     /**
      * @brief Event fired when a mouse button is pressed.
-     * The @ref event_data used is @ref event_data.button
+     * The @ref event_data used is @ref event_data.u32 (the button that was pressed)
      */
     EVENT_TYPE_MOUSE_BUTTON_PRESSED,
 
     /**
      * @brief Event fired after @ref EVENT_TYPE_MOUSE_BUTTON_PRESSED is fired and the pressed button is released.
-     * The @ref event_data used is @ref event_data.button
+     * The @ref event_data used is @ref event_data.u32 (the button that was released)
      */
     EVENT_TYPE_MOUSE_BUTTON_RELEASED,
 
     /**
      * @brief Event fired when a mouse button is clicked.
-     * The @ref event_data used is @ref event_data.button
+     * The @ref event_data used is @ref event_data.u32 (the button that was clicked)
      */
     EVENT_TYPE_MOUSE_BUTTON_CLICKED,
 
     /**
      * @brief Event fired when the mouse is moved.
-     * The @ref event_data used is @ref event_data.vec2f
+     * The @ref event_data used is @ref event_data.vec2f (the mouse position)
      */
     EVENT_TYPE_MOUSE_MOVED,
 
     /**
      * @brief Event fired when the mouse is moved while a button is being pressed.
-     * The @ref event_data used is @ref event_data.drag
+     * The @ref event_data used is @ref event_data.drag (the mouse position and button held down)
      */
     EVENT_TYPE_MOUSE_DRAG_BEGIN,
 
     /**
      * @brief Event fired after @ref EVENT_TYPE_MOUSE_DRAG_BEGIN is fired and the mouse is moved.
-     * The @ref event_data used is @ref event_data.drag
+     * The @ref event_data used is @ref event_data.drag (the mouse position and button held down)
      */
     EVENT_TYPE_MOUSE_DRAGGED,
 
     /**
      * @brief Event fired after @ref EVENT_TYPE_MOUSE_DRAG_END is fired and the pressed button is released.
-     * The @ref event_data used is @ref event_data.drag
+     * The @ref event_data used is @ref event_data.drag (the mouse position and button held down)
      */
     EVENT_TYPE_MOUSE_DRAG_END,
 
     /**
      * @brief Event fired when the mouse wheel is scrolled.
-     * The @ref event_data used is @ref event_data.u32
+     * The @ref event_data used is @ref event_data.f32 (the mouse wheel delta)
      */
     EVENT_TYPE_MOUSE_WHEEL,
 
     /**
      * @brief Event fired when a window is resized.
-     * The @ref event_data used is @ref event_data.vec2f
+     * The @ref event_data used is @ref event_data.vec2f (the window size)
      */
     EVENT_TYPE_WINDOW_RESIZED,
 
@@ -116,21 +117,19 @@ typedef enum event_type {
  */
 typedef union event_data {
     // TODO: key type
-    u32 key;
-
-    // TODO: mouse button type
+    key key;
     u32 button;
 
     // TODO: drag type
     struct {
         vec2f begin;
         vec2f current;
-        // TODO: mouse button type
         u32 button;
     } drag;
 
     vec2f vec2f;
     u32 u32;
+    f32 f32;
 } event_data;
 
 /** @brief A callback for an event. */

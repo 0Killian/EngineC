@@ -4,9 +4,10 @@
 #include "core/log.h"
 #include "core/memory.h"
 #include "core/event.h"
+#include "core/input.h"
 
 static void on_window_closed(const window *window);
-static void on_window_resized(const window *window);
+static void on_window_resized(event_type type, event_data data, void *user_data);
 
 typedef struct engine_state {
     /** @brief The state of the platform layer. */
@@ -15,6 +16,8 @@ typedef struct engine_state {
     void *logging_state;
     /** @brief The state of the event system. */
     void *event_state;
+    /** @brief The state of the input system. */
+    void *input_state;
 
     /** @brief The window state. */
     window *window;
@@ -100,6 +103,18 @@ b8 engine_init(application *app) {
 
     event_register_callback(EVENT_TYPE_WINDOW_RESIZED, on_window_resized, NULL, &state->on_window_resized_handler);
 
+    // Initializing input system
+    if (!input_init(NULL, &size_requirement)) {
+        LOG_ERROR("Failed to initialize the input system");
+        return FALSE;
+    }
+
+    state->input_state = mem_alloc(MEMORY_TAG_ENGINE, size_requirement);
+    if (!input_init(state->input_state, &size_requirement)) {
+        LOG_ERROR("Failed to initialize the input system");
+        return FALSE;
+    }
+
     // Create the window
     if (!platform_window_create(&app->window_config, &state->window)) {
         LOG_ERROR("Failed to create the window");
@@ -135,6 +150,11 @@ void engine_deinit(struct application *app) {
     }
 
     // Deinitialize layers and systems
+    if (state->input_state) {
+        input_deinit(state->input_state);
+        mem_free(state->input_state);
+    }
+
     if (state->event_state) {
         event_deinit(state->event_state);
         mem_free(state->event_state);
@@ -177,6 +197,8 @@ b8 engine_run(struct application *app) {
         f64 current_time = platform_get_time();
         f32 delta_time = (f32)(current_time - last_time);
         last_time = current_time;
+
+        input_update(delta_time);
 
         if (!platform_process_messages()) {
             LOG_ERROR("Failed to process platform messages");
