@@ -1,6 +1,7 @@
 #include "platform/vulkan_platform.h"
 #include <windows.h>
 #include <vulkan/vulkan_win32.h>
+#include "vulkan_utils.h"
 
 typedef struct window_platform_state {
     HWND handle;
@@ -26,7 +27,9 @@ b8 vulkan_platform_surface_create(vulkan_state *state, const window *window) {
         .hwnd = platform_state->handle
     };
 
-    if (vkCreateWin32SurfaceKHR(state->instance, &create_info, state->allocation_callbacks, &state->surface) != VK_SUCCESS) {
+    VkResult result = vkCreateWin32SurfaceKHR(state->instance, &create_info, state->allocation_callbacks, &state->surface);
+    if (result != VK_SUCCESS) {
+        LOG_ERROR("Failed to create vulkan platform surface: %s", vk_result_to_string(result));
         return FALSE;
     }
 
