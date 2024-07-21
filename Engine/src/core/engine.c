@@ -22,6 +22,8 @@ typedef struct engine_state {
     b8 is_running;
     /** @brief Wether the engine is suspended. */
     b8 is_suspended;
+    /** @brief The handler of the window resize event. */
+    uuid on_window_resized_handler;
 } engine_state;
 
 engine_state *state;
@@ -71,7 +73,6 @@ b8 engine_init(application *app) {
     }
 
     platform_register_window_closed_callback(on_window_closed);
-    platform_register_window_resized_callback(on_window_resized);
 
     // Initializing logging system
     if (!log_init(NULL, &size_requirement)) {
@@ -97,6 +98,8 @@ b8 engine_init(application *app) {
         return FALSE;
     }
 
+    event_register_callback(EVENT_TYPE_WINDOW_RESIZED, on_window_resized, NULL, &state->on_window_resized_handler);
+
     // Create the window
     if (!platform_window_create(&app->window_config, &state->window)) {
         LOG_ERROR("Failed to create the window");
@@ -119,6 +122,12 @@ void engine_deinit(struct application *app) {
     if (!event_fire(EVENT_TYPE_APPLICATION_QUIT, (event_data) {})) {
         LOG_WARN("Failed to fire EVENT_TYPE_APPLICATION_QUIT");
     }
+
+    if (!event_unregister_callback(EVENT_TYPE_WINDOW_RESIZED, state->on_window_resized_handler)) {
+        LOG_WARN("Failed to unregister EVENT_TYPE_WINDOW_RESIZED callback");
+    }
+
+    state->on_window_resized_handler = INVALID_UUID;
 
     // Destroy the window
     if (state->window) {
@@ -159,8 +168,19 @@ void engine_deinit(struct application *app) {
  * @retval FALSE Failure
  */
 b8 engine_run(struct application *app) {
-    while (platform_process_messages()) {
+    f64 last_time = platform_get_time();
+    while (TRUE) {
         if (!state->is_running) {
+            break;
+        }
+
+        f64 current_time = platform_get_time();
+        f32 delta_time = (f32)(current_time - last_time);
+        last_time = current_time;
+
+        if (!platform_process_messages()) {
+            LOG_ERROR("Failed to process platform messages");
+            state->is_running = FALSE;
             break;
         }
 
@@ -196,8 +216,8 @@ static void on_window_closed(const window *window) {
     state->is_running = FALSE;
 }
 
-static void on_window_resized(const window *window) {
-    if (window->width == 0 || window->height == 0) {
+static void on_window_resized(event_type type, event_data data, void *user_data) {
+    if (state->window->width == 0 || state->window->height == 0) {
         LOG_INFO("Window minimized, suspending engine.");
         state->is_suspended = TRUE;
     } else {
