@@ -3,7 +3,7 @@
  * @author Killian Bellouard (killianbellouard@gmail.com)
  * @brief This file defines the interface of the platform layer. Each platform must implement this interface in a separate .c
  * file.
- * @version 0.4
+ * @version 0.5
  * @date 2024-06-11
  */
 
@@ -72,12 +72,6 @@ typedef struct window {
 
 // Callbacks
 typedef void (*platform_window_closed_callback)(const window *window);
-typedef void (*platform_window_resized_callback)(const window *window);
-// TODO: Mouse Button
-// TODO: Mouse Movement
-// TODO: Mouse Wheel
-// TODO: Key
-
 
 /**
  * @brief Initializes the platform layer.
@@ -224,15 +218,6 @@ b8 platform_window_set_title(window* window, const char* title);
 b8 platform_process_messages();
 
 /**
- * @brief Registers the callback to be called when the window is resized.
- * 
- * @note There is only one callback registered at a time.
- * 
- * @param [in] callback The callback to register.
- */
-void platform_register_window_resized_callback(platform_window_resized_callback callback);
-
-/**
  * @brief Registers the callback to be called when the window is closed.
  * 
  * @note There is only one callback registered at a time.
@@ -241,7 +226,16 @@ void platform_register_window_resized_callback(platform_window_resized_callback 
  */
 void platform_register_window_closed_callback(platform_window_closed_callback callback);
 
-// TODO: Mouse Button
-// TODO: Mouse Movement
-// TODO: Mouse Wheel
-// TODO: Key
+/**
+ * @brief Gets the time in seconds.
+ * 
+ * @return The time in seconds.
+ */
+f32 platform_get_time();
+
+/**
+ * @brief Sleeps for the specified number of milliseconds.
+ * 
+ * @param [in] milliseconds The number of milliseconds to sleep.
+ */
+API void platform_sleep(u32 milliseconds);

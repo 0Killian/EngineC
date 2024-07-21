@@ -9,14 +9,16 @@
 
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
+#include <windowsx.h>
 #include <winuser.h>
 
 /** @brief State of the platform layer. */
 typedef struct platform_state {
     DYNARRAY(window *) windows;
     platform_window_closed_callback window_closed_callback;
-    platform_window_resized_callback window_resized_callback;
-    // TODO: Other callbacks
+
+    f64 clock_frequency;
+    LARGE_INTEGER clock_start_time;
 } platform_state;
 
 typedef struct window_platform_state {
@@ -25,9 +27,10 @@ typedef struct window_platform_state {
 
 static platform_state *state;
 
-LRESULT CALLBACK wnd_proc_bootstrap(HWND, UINT, WPARAM, LPARAM);
-LRESULT CALLBACK wnd_proc_stub(HWND, UINT, WPARAM, LPARAM);
-LRESULT wnd_proc(window*, UINT, WPARAM, LPARAM);
+static LRESULT CALLBACK wnd_proc_bootstrap(HWND, UINT, WPARAM, LPARAM);
+static LRESULT CALLBACK wnd_proc_stub(HWND, UINT, WPARAM, LPARAM);
+static LRESULT wnd_proc(window*, UINT, WPARAM, LPARAM);
+static void clock_setup();
 
 static u8 convert_platform_color(platform_console_color foreground, platform_console_color background) {
     return foreground & 0xF | (background & 0xF) << 4;
@@ -400,17 +403,6 @@ b8 platform_process_messages() {
 }
 
 /**
- * @brief Registers the callback to be called when the window is resized.
- * 
- * @note There is only one callback registered at a time.
- * 
- * @param [in] callback The callback to register.
- */
-void platform_register_window_resized_callback(platform_window_resized_callback callback) {
-    state->window_resized_callback = callback;
-}
-
-/**
  * @brief Registers the callback to be called when the window is closed.
  * 
  * @note There is only one callback registered at a time.
@@ -421,12 +413,30 @@ void platform_register_window_closed_callback(platform_window_closed_callback ca
     state->window_closed_callback = callback;
 }
 
-// TODO: Mouse Button
-// TODO: Mouse Movement
-// TODO: Mouse Wheel
-// TODO: Key
+/**
+ * @brief Gets the time in seconds.
+ * 
+ * @return The time in seconds.
+ */
+f32 platform_get_time() {
+    if (!state->clock_frequency) {
+        clock_setup();
+    }
 
-LRESULT CALLBACK wnd_proc_bootstrap(HWND handle, UINT msg, WPARAM wp, LPARAM lp) {
+    LARGE_INTEGER now_time;
+    QueryPerformanceCounter(&now_time);
+    return (f64)now_time.QuadPart * state->clock_frequency;
+}
+
+/**
+ * @brief Sleeps for the specified number of milliseconds.
+ * 
+ * @param [in] milliseconds The number of milliseconds to sleep.
+ */
+API void platform_sleep(u32 milliseconds) {
+    Sleep(milliseconds);
+}
+static LRESULT CALLBACK wnd_proc_bootstrap(HWND handle, UINT msg, WPARAM wp, LPARAM lp) {
     if (msg != WM_NCCREATE) {
         return DefWindowProcA(handle, msg, wp, lp);
     }
@@ -442,12 +452,12 @@ LRESULT CALLBACK wnd_proc_bootstrap(HWND handle, UINT msg, WPARAM wp, LPARAM lp)
     wnd_proc(window, msg, wp, lp);
 }
 
-LRESULT CALLBACK wnd_proc_stub(HWND handle, UINT msg, WPARAM wp, LPARAM lp) {
+static LRESULT CALLBACK wnd_proc_stub(HWND handle, UINT msg, WPARAM wp, LPARAM lp) {
     u32 index = (u32)GetWindowLongPtrA(handle, GWLP_USERDATA);
     return wnd_proc(state->windows.data[index], msg, wp, lp);
 }
 
-LRESULT wnd_proc(window *window, UINT msg, WPARAM wp, LPARAM lp) {
+static LRESULT wnd_proc(window *window, UINT msg, WPARAM wp, LPARAM lp) {
     switch (msg) {
     case WM_DPICHANGED: {
         i32 x_dpi = LOWORD(wp);
@@ -482,10 +492,6 @@ LRESULT wnd_proc(window *window, UINT msg, WPARAM wp, LPARAM lp) {
             window->width = width;
             window->height = height;
 
-            if (state->window_resized_callback != NULL) {
-                state->window_resized_callback(window);
-            }
-
             event_data data = { .vec2f = { (f32)width, (f32)height } };
 
             if (!event_fire(EVENT_TYPE_WINDOW_RESIZED, data)) {
@@ -498,6 +504,13 @@ LRESULT wnd_proc(window *window, UINT msg, WPARAM wp, LPARAM lp) {
     default:
         return DefWindowProcA(window->platform_state->handle, msg, wp, lp);
     }
+}
+
+static void clock_setup() {
+    LARGE_INTEGER frequency;
+    QueryPerformanceFrequency(&frequency);
+    state->clock_frequency = 1.0f / (f64)frequency.QuadPart;
+    QueryPerformanceCounter(&state->clock_start_time);
 }
 
 #endif
