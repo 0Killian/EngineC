@@ -11,6 +11,7 @@
 typedef struct region_header {
     u64 size;
     u64 allocation_offset;
+    u64 allocation_size;
     memory_tag tag;
 
     #ifdef DEBUG
@@ -103,6 +104,7 @@ static void* mem_alloc_aligned_with_caller(memory_tag tag, u64 size, u64 alignme
     region_header* header = (region_header*)((u64)region - sizeof(region_header));
     header->size = size;
     header->allocation_offset = (u64)header - (u64)allocation;
+    header->allocation_size = region_size;
     header->tag = tag;
 
     #ifdef DEBUG
@@ -175,7 +177,7 @@ API void mem_free(void* ptr) {
 
     // Update the statistics
     state->allocation_count[header->tag]--;
-    state->allocated_size[header->tag] -= header->size + header->allocation_offset + sizeof(region_header);
+    state->allocated_size[header->tag] -= header->allocation_size;
 
     // Free the region
     platform_free(header - header->allocation_offset);
