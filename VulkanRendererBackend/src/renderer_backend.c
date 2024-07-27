@@ -203,7 +203,8 @@ b8 vulkan_init(renderer_backend_interface *interface, renderer_backend_config *c
         return FALSE;
     }
 
-    LOG_INFO("Vulkan renderer backend initialized");
+    // TODO: Remove
+    VkResult result;
 
     if (!vulkan_swapchain_create(state, window->width, window->height, &state->swapchain)) {
         LOG_ERROR("Failed to create vulkan swapchain");
@@ -220,6 +221,8 @@ b8 vulkan_init(renderer_backend_interface *interface, renderer_backend_config *c
         return FALSE;
     }
 
+    LOG_INFO("Vulkan renderer backend initialized");
+
     return TRUE;
 }
 
@@ -230,6 +233,8 @@ void vulkan_deinit(renderer_backend_interface *interface) {
         LOG_ERROR("Vulkan renderer backend not initialized");
         return;
     }
+
+    vkDeviceWaitIdle(state->device.logical_device);
 
     if (state->on_resize_handler != INVALID_UUID) {
         event_unregister_callback(EVENT_TYPE_WINDOW_RESIZED, state->on_resize_handler);
@@ -261,6 +266,216 @@ void vulkan_deinit(renderer_backend_interface *interface) {
     }
 
     mem_free(state);
+}
+
+/**
+ * @brief Prepares a frame for rendering.
+ *
+ * @param[in] interface A pointer to the interface of the renderer backend.
+ * @param[in,out] packet A pointer to the frame packet.
+ *
+ * @retval TRUE Success
+ * @retval FALSE Failure
+ */
+b8 vulkan_frame_prepare(renderer_backend_interface *interface, frame_packet *packet) {
+    vulkan_state *state = (vulkan_state *)interface->internal_data;
+
+    VkResult result =
+        vkWaitForFences(state->device.logical_device, 1, &state->in_flight_fences[state->current_frame], VK_TRUE, UINT64_MAX);
+    if (result != VK_SUCCESS) {
+        LOG_ERROR("Failed to wait for frame fence: %s", vk_result_to_string(result));
+        return FALSE;
+    }
+
+    if (!vulkan_swapchain_acquire_next_image(state,
+                                             &state->swapchain,
+                                             state->image_available_semaphores[state->current_frame],
+                                             VK_NULL_HANDLE,
+                                             &state->image_index)) {
+        LOG_ERROR("Failed to acquire next swapchain image");
+        return FALSE;
+    }
+
+    result = vkResetFences(state->device.logical_device, 1, &state->in_flight_fences[state->current_frame]);
+    if (result != VK_SUCCESS) {
+        LOG_ERROR("Failed to reset frame fence: %s", vk_result_to_string(result));
+        return FALSE;
+    }
+
+    if (!vulkan_command_buffer_reset(state, &state->command_buffers[state->current_frame])) {
+        LOG_ERROR("Failed to reset frame command buffer");
+        return FALSE;
+    }
+
+    return TRUE;
+}
+
+/**
+ * @brief Begins a command list.
+ *
+ * @param[in] interface A pointer to the interface of the renderer backend.
+ * @param[in,out] packet A pointer to the frame packet.
+ *
+ * @retval TRUE Success
+ * @retval FALSE Failure
+ */
+b8 vulkan_command_list_begin(renderer_backend_interface *interface, frame_packet *packet) {
+    vulkan_state *state = (vulkan_state *)interface->internal_data;
+
+    if (!vulkan_command_buffer_begin(state, &state->command_buffers[state->current_frame], FALSE, FALSE, FALSE)) {
+        LOG_ERROR("Failed to begin frame command buffer");
+        return FALSE;
+    }
+
+    VkImageMemoryBarrier image_barrier = {
+        .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+        .pNext = NULL,
+        .dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+        .oldLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+        .newLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+        .image = state->swapchain.images[state->image_index],
+        .subresourceRange = { .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+                             .baseMipLevel = 0,
+                             .levelCount = 1,
+                             .baseArrayLayer = 0,
+                             .layerCount = 1 }
+    };
+
+    vkCmdPipelineBarrier(state->command_buffers[state->current_frame].handle,
+                         VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+                         VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+                         0,
+                         0,
+                         NULL,
+                         0,
+                         NULL,
+                         1,
+                         &image_barrier);
+
+    VkRenderingAttachmentInfo depth_attachment = { .sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO,
+                                                   .imageView = state->swapchain.depth_attachments[state->image_index].view,
+                                                   .imageLayout = VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL,
+                                                   .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
+                                                   .storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+                                                   .clearValue = { .depthStencil = { .depth = 1.0f, .stencil = 0 } } };
+
+    VkRenderingAttachmentInfo color_attachment = { .sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO,
+                                                   .imageView = state->swapchain.image_views[state->image_index],
+                                                   .imageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+                                                   .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
+                                                   .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
+                                                   .clearValue = { .color = { .float32 = { 0.8f, 0.0f, 0.0f, 1.0f } } } };
+
+    VkRenderingInfo rendering_begin_info = {
+        .sType = VK_STRUCTURE_TYPE_RENDERING_INFO,
+        .pNext = NULL,
+        .flags = 0,
+        .renderArea = {
+            .offset = { 0, 0 },
+            .extent = {
+                .width = state->win->width,
+                .height = state->win->height,
+            },
+        },
+        .layerCount = 1,
+        .pDepthAttachment = &depth_attachment,
+        .colorAttachmentCount = 1,
+        .pColorAttachments = &color_attachment,
+        .pStencilAttachment = NULL
+    };
+
+    vkCmdBeginRendering(state->command_buffers[state->current_frame].handle, &rendering_begin_info);
+
+    return TRUE;
+}
+
+/**
+ * @brief Ends a command list.
+ *
+ * @param[in] interface A pointer to the interface of the renderer backend.
+ * @param[in,out] packet A pointer to the frame packet.
+ *
+ * @retval TRUE Success
+ * @retval FALSE Failure
+ */
+b8 vulkan_command_list_end(renderer_backend_interface *interface, frame_packet *packet) {
+    vulkan_state *state = (vulkan_state *)interface->internal_data;
+
+    vkCmdEndRendering(state->command_buffers[state->current_frame].handle);
+
+    VkImageMemoryBarrier image_barrier = (VkImageMemoryBarrier){
+        .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+        .pNext = NULL,
+        .srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+        .oldLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+        .newLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
+        .image = state->swapchain.images[state->image_index],
+        .subresourceRange = { .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+                             .baseMipLevel = 0,
+                             .levelCount = 1,
+                             .baseArrayLayer = 0,
+                             .layerCount = 1 }
+    };
+
+    vkCmdPipelineBarrier(state->command_buffers[state->current_frame].handle,
+                         VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+                         VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
+                         0,
+                         0,
+                         NULL,
+                         0,
+                         NULL,
+                         1,
+                         &image_barrier);
+
+    if (!vulkan_command_buffer_end(state, &state->command_buffers[state->current_frame])) {
+        LOG_ERROR("Failed to end frame command buffer");
+        return FALSE;
+    }
+
+    return TRUE;
+}
+
+/**
+ * @brief Renders the current frame.
+ *
+ * @param[in] interface A pointer to the interface of the renderer backend.
+ * @param[in,out] packet A pointer to the frame packet to render.
+ */
+b8 vulkan_frame_render(renderer_backend_interface *interface, frame_packet *packet) {
+    vulkan_state *state = (vulkan_state *)interface->internal_data;
+
+    VkSubmitInfo submit_info = {
+        .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
+        .commandBufferCount = 1,
+        .pCommandBuffers = &state->command_buffers[state->current_frame].handle,
+        .pWaitSemaphores = &state->image_available_semaphores[state->current_frame],
+        .waitSemaphoreCount = 1,
+        .pSignalSemaphores = &state->render_finished_semaphores[state->current_frame],
+        .signalSemaphoreCount = 1,
+    };
+
+    VkPipelineStageFlags wait_stage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+    submit_info.pWaitDstStageMask = &wait_stage;
+
+    VkResult result = vkQueueSubmit(state->device.graphics_queue, 1, &submit_info, state->in_flight_fences[state->current_frame]);
+    if (result != VK_SUCCESS) {
+        LOG_ERROR("Failed to submit frame command buffer: %s", vk_result_to_string(result));
+        return FALSE;
+    }
+
+    vulkan_command_buffer_submitted(state, &state->command_buffers[state->current_frame]);
+
+    vulkan_swapchain_present(state,
+                             &state->swapchain,
+                             state->device.graphics_queue,
+                             state->device.present_queue,
+                             state->render_finished_semaphores[state->current_frame],
+                             state->image_index);
+
+    state->current_frame = (state->current_frame + 1) % state->swapchain.max_frames_in_flight;
+
+    return TRUE;
 }
 
 static b8 create_instance(vulkan_state *state, renderer_backend_config *config) {

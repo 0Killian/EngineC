@@ -13,11 +13,11 @@
 
 /**
  * @brief Initializes the vulkan renderer backend.
- * 
+ *
  * @param[in] interface A pointer to the interface of the renderer backend.
  * @param[in] config A pointer to the configuration of the renderer backend.
  * @param[in] window A pointer to the window.
- * 
+ *
  * @retval TRUE Success
  * @retval FALSE Failure
  */
@@ -25,7 +25,48 @@ b8 vulkan_init(renderer_backend_interface *interface, renderer_backend_config *c
 
 /**
  * @brief Deinitializes the vulkan renderer backend.
- * 
+ *
  * @param[in] interface A pointer to the interface of the renderer backend.
  */
 void vulkan_deinit(renderer_backend_interface *interface);
+
+/**
+ * @brief Prepares a frame for rendering.
+ *
+ * @param[in] interface A pointer to the interface of the renderer backend.
+ * @param[in,out] packet A pointer to the frame packet.
+ *
+ * @retval TRUE Success
+ * @retval FALSE Failure
+ */
+b8 vulkan_frame_prepare(renderer_backend_interface *interface, frame_packet *packet);
+
+/**
+ * @brief Begins a command list.
+ *
+ * @param[in] interface A pointer to the interface of the renderer backend.
+ * @param[in,out] packet A pointer to the frame packet.
+ *
+ * @retval TRUE Success
+ * @retval FALSE Failure
+ */
+b8 vulkan_command_list_begin(renderer_backend_interface *interface, frame_packet *packet);
+
+/**
+ * @brief Ends a command list.
+ *
+ * @param[in] interface A pointer to the interface of the renderer backend.
+ * @param[in,out] packet A pointer to the frame packet.
+ *
+ * @retval TRUE Success
+ * @retval FALSE Failure
+ */
+b8 vulkan_command_list_end(renderer_backend_interface *interface, frame_packet *packet);
+
+/**
+ * @brief Renders the current frame.
+ *
+ * @param[in] interface A pointer to the interface of the renderer backend.
+ * @param[in,out] packet A pointer to the frame packet to render.
+ */
+b8 vulkan_frame_render(renderer_backend_interface *interface, frame_packet *packet);

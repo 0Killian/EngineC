@@ -56,7 +56,7 @@ int main(void) {
     }
 
     // Ensure that all necessary fields are set
-    if (!app.init || !app.deinit) {
+    if (!app.init || !app.deinit || !app.update || !app.prepare_frame || !app.render_frame) {
         LOG_ERROR("Application hooks not defined");
         return 3;
     }

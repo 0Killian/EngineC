@@ -10,6 +10,7 @@
 
 #include "common.h"
 #include "platform/platform.h"
+#include "renderer/frame_packet.h"
 
 /**
  * @brief Holds the state of the application and the engine.
@@ -26,6 +27,30 @@ typedef struct application {
      * @retval FALSE Failure
      */
     b8 (*init)(struct application *app);
+
+    /**
+     * @brief Updates the application.
+     * 
+     * @param[in] app A pointer to the application.
+     * @param[in] delta_time The delta time.
+     */
+    b8 (*update)(struct application *app, f32 delta_time);
+
+    /**
+     * @brief Prepares the frame for rendering.
+     * 
+     * @param[in] app A pointer to the application.
+     * @param[in] frame_packet A pointer to the frame packet.
+     */
+    b8 (*prepare_frame)(struct application *app, frame_packet *frame_packet);
+
+    /**
+     * @brief Renders the frame.
+     * 
+     * @param[in] app A pointer to the application.
+     * @param[in] frame_packet A pointer to the frame packet.
+     */
+    b8 (*render_frame)(struct application *app, frame_packet *frame_packet);
 
     /**
      * @brief Deinitializes the application.

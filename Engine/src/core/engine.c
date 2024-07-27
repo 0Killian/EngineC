@@ -52,6 +52,8 @@ API b8 engine_early_init() {
         LOG_ERROR("Failed to initialize the memory management system");
         return FALSE;
     }
+
+    return TRUE;
 }
 
 /**
@@ -230,6 +232,8 @@ void engine_deinit(struct application *app) {
  */
 b8 engine_run(struct application *app) {
     f64 last_time = platform_get_time();
+    frame_packet packet = {};
+
     while (TRUE) {
         if (!state->is_running) {
             break;
@@ -248,8 +252,14 @@ b8 engine_run(struct application *app) {
         }
 
         if (state->is_suspended) {
-            // TODO: Sleep for some time
+            platform_sleep(100);
             continue;
+        }
+
+        if (!app->update(app, delta_time)) {
+            LOG_ERROR("Failed to update the application");
+            state->is_running = FALSE;
+            break;
         }
 
         // Throttle the resizes
@@ -270,6 +280,43 @@ b8 engine_run(struct application *app) {
         }
 
         // TODO: Implement the main loop
+        packet = (frame_packet){};
+
+        if (!renderer_frame_prepare(state->renderer_state, &packet)) {
+            LOG_ERROR("Failed to prepare the frame");
+            state->is_running = FALSE;
+            break;
+        }
+
+        if (!renderer_command_list_begin(state->renderer_state, &packet)) {
+            LOG_ERROR("Failed to begin the command list");
+            state->is_running = FALSE;
+            break;
+        }
+
+        if (!app->prepare_frame(app, &packet)) {
+            LOG_ERROR("Failed to prepare the frame");
+            state->is_running = FALSE;
+            break;
+        }
+
+        if (!app->render_frame(app, &packet)) {
+            LOG_ERROR("Failed to render the frame");
+            state->is_running = FALSE;
+            break;
+        }
+
+        if (!renderer_command_list_end(state->renderer_state, &packet)) {
+            LOG_ERROR("Failed to end the command list");
+            state->is_running = FALSE;
+            break;
+        }
+
+        if (!renderer_frame_render(state->renderer_state, &packet)) {
+            LOG_ERROR("Failed to render the frame");
+            state->is_running = FALSE;
+            break;
+        }
     }
 
     return TRUE;

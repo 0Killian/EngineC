@@ -1,6 +1,6 @@
-#include <core/plugins.h>
-#include <core/memory.h>
 #include "renderer_backend.h"
+#include <core/memory.h>
+#include <core/plugins.h>
 
 #define LOG_SCOPE "VULKAN BACKEND"
 #include <core/log.h>
@@ -11,7 +11,7 @@ static void plugin_deinit(void *state);
 plugin_interface _plugin_interface = {
     .init = plugin_init,
     .deinit = plugin_deinit,
-    .state = NULL
+    .state = NULL,
 };
 
 b8 plugin_init(void **state) {
@@ -21,6 +21,10 @@ b8 plugin_init(void **state) {
 
     interface->init = vulkan_init;
     interface->deinit = vulkan_deinit;
+    interface->frame_prepare = vulkan_frame_prepare;
+    interface->command_list_begin = vulkan_command_list_begin;
+    interface->command_list_end = vulkan_command_list_end;
+    interface->frame_render = vulkan_frame_render;
 
     return TRUE;
 }

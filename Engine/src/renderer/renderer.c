@@ -64,3 +64,66 @@ void renderer_deinit(void *) {
 
     state = NULL;
 }
+
+/**
+ * @brief Prepares a frame for rendering. This call must be followed by a call to @ref renderer_frame_render after rendering
+ * is done.
+ * 
+ * @param[in] state A pointer to the state of the renderer system.
+ * @param[in,out] packet A pointer to the frame packet to render.
+ *
+ * @retval TRUE Success
+ * @retval FALSE Failure
+ */
+b8 renderer_frame_prepare(void *_, frame_packet *packet) {
+    renderer_backend_interface *interface = (renderer_backend_interface*)state->backend_plugin.interface.state;
+    
+    // TODO: Setup the high level frame
+
+    return interface->frame_prepare(interface, packet);
+}
+
+/**
+ * @brief Begins a command list. This call must be followed by a call to @ref renderer_command_list_end after recording render
+ * calls.
+ *
+ * @param[in] state A pointer to the state of the renderer system.
+ * @param[in,out] packet A pointer to the frame packet to render.
+ *
+ * @retval TRUE Success
+ * @retval FALSE Failure
+ */
+b8 renderer_command_list_begin(void *_, frame_packet *packet) {
+    renderer_backend_interface *interface = (renderer_backend_interface*)state->backend_plugin.interface.state;
+    return interface->command_list_begin(interface, packet);
+}
+
+/**
+ * @brief Ends a command list. This call must be preceded by a call to @ref renderer_command_list_begin before recording render
+ * calls.
+ *
+ * @param[in] state A pointer to the state of the renderer system.
+ * @param[in,out] packet A pointer to the frame packet to render.
+ *
+ * @retval TRUE Success
+ * @retval FALSE Failure
+ */
+b8 renderer_command_list_end(void *_, frame_packet *packet) {
+    renderer_backend_interface *interface = (renderer_backend_interface*)state->backend_plugin.interface.state;
+    return interface->command_list_end(interface, packet);
+}
+
+/**
+ * @brief Renders the current frame. This call must be preceded by a call to @ref renderer_frame_prepare before rendering
+ * is done.
+ * 
+ * @param[in] state A pointer to the state of the renderer system.
+ * @param[in,out] packet A pointer to the frame packet to render.
+ */
+b8 renderer_frame_render(void *_, frame_packet *packet) {
+    renderer_backend_interface *interface = (renderer_backend_interface*)state->backend_plugin.interface.state;
+
+    // TODO: Render the high level frame
+
+    return interface->frame_render(interface, packet);
+}
