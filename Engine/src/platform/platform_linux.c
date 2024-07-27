@@ -11,9 +11,51 @@
 #include <time.h>
 #include <unistd.h>
 
-static u8 convert_platform_color(platform_console_color foreground, platform_console_color background) {
-    // TODO:
-    return 0;
+static const char *convert_platform_color(platform_console_color foreground, platform_console_color background) {
+    // Use ANSI codes
+    static char output[12];
+
+    switch (foreground) {
+    case PLATFORM_CONSOLE_COLOR_BLACK: strcpy(output, "\033[30m"); break;
+    case PLATFORM_CONSOLE_COLOR_BLUE: strcpy(output, "\033[34m"); break;
+    case PLATFORM_CONSOLE_COLOR_GREEN: strcpy(output, "\033[32m"); break;
+    case PLATFORM_CONSOLE_COLOR_CYAN: strcpy(output, "\033[36m"); break;
+    case PLATFORM_CONSOLE_COLOR_RED: strcpy(output, "\033[31m"); break;
+    case PLATFORM_CONSOLE_COLOR_PURPLE: strcpy(output, "\033[35m"); break;
+    case PLATFORM_CONSOLE_COLOR_YELLOW: strcpy(output, "\033[33m"); break;
+    case PLATFORM_CONSOLE_COLOR_WHITE: strcpy(output, "\033[37m"); break;
+    case PLATFORM_CONSOLE_COLOR_GRAY: strcpy(output, "\033[90m"); break;
+    case PLATFORM_CONSOLE_COLOR_LIGHT_BLUE: strcpy(output, "\033[94m"); break;
+    case PLATFORM_CONSOLE_COLOR_LIGHT_GREEN: strcpy(output, "\033[92m"); break;
+    case PLATFORM_CONSOLE_COLOR_LIGHT_CYAN: strcpy(output, "\033[96m"); break;
+    case PLATFORM_CONSOLE_COLOR_LIGHT_RED: strcpy(output, "\033[91m"); break;
+    case PLATFORM_CONSOLE_COLOR_LIGHT_PURPLE: strcpy(output, "\033[95m"); break;
+    case PLATFORM_CONSOLE_COLOR_LIGHT_YELLOW: strcpy(output, "\033[93m"); break;
+    case PLATFORM_CONSOLE_COLOR_BRIGHT_WHITE: strcpy(output, "\033[97m"); break;
+    default: break;
+    }
+
+    switch (background) {
+    case PLATFORM_CONSOLE_COLOR_BLACK: strcat(output, "\033[40m"); break;
+    case PLATFORM_CONSOLE_COLOR_BLUE: strcat(output, "\033[44m"); break;
+    case PLATFORM_CONSOLE_COLOR_GREEN: strcat(output, "\033[42m"); break;
+    case PLATFORM_CONSOLE_COLOR_CYAN: strcat(output, "\033[46m"); break;
+    case PLATFORM_CONSOLE_COLOR_RED: strcat(output, "\033[41m"); break;
+    case PLATFORM_CONSOLE_COLOR_PURPLE: strcat(output, "\033[45m"); break;
+    case PLATFORM_CONSOLE_COLOR_YELLOW: strcat(output, "\033[43m"); break;
+    case PLATFORM_CONSOLE_COLOR_WHITE: strcat(output, "\033[47m"); break;
+    case PLATFORM_CONSOLE_COLOR_GRAY: strcat(output, "\033[100m"); break;
+    case PLATFORM_CONSOLE_COLOR_LIGHT_BLUE: strcat(output, "\033[104m"); break;
+    case PLATFORM_CONSOLE_COLOR_LIGHT_GREEN: strcat(output, "\033[102m"); break;
+    case PLATFORM_CONSOLE_COLOR_LIGHT_CYAN: strcat(output, "\033[106m"); break;
+    case PLATFORM_CONSOLE_COLOR_LIGHT_RED: strcat(output, "\033[101m"); break;
+    case PLATFORM_CONSOLE_COLOR_LIGHT_PURPLE: strcat(output, "\033[105m"); break;
+    case PLATFORM_CONSOLE_COLOR_LIGHT_YELLOW: strcat(output, "\033[103m"); break;
+    case PLATFORM_CONSOLE_COLOR_BRIGHT_WHITE: strcat(output, "\033[107m"); break;
+    default: break;
+    }
+
+    return output;
 }
 
 linux_adapter *adapter = NULL;
@@ -133,8 +175,7 @@ void platform_deinit(void *_) {
  * @param[in] message The message to write.
  */
 void platform_console_write(platform_console_color foreground, platform_console_color background, const char *message) {
-    // TODO:
-    printf("%s", message);
+    printf("%s%s", convert_platform_color(foreground, background), message);
 }
 
 /**
@@ -145,8 +186,7 @@ void platform_console_write(platform_console_color foreground, platform_console_
  * @param[in] message The message to write.
  */
 void platform_console_write_error(platform_console_color foreground, platform_console_color background, const char *message) {
-    // TODO:
-    fprintf(stderr, "%s", message);
+    fprintf(stderr, "%s%s", convert_platform_color(foreground, background), message);
 }
 
 /**
@@ -155,20 +195,14 @@ void platform_console_write_error(platform_console_color foreground, platform_co
  * @param[in] size The size of the region to allocate.
  * @retval A pointer to the allocated region.
  */
-void *platform_allocate(u64 size) {
-    // TODO:
-    return malloc(size);
-}
+void *platform_allocate(u64 size) { return malloc(size); }
 
 /**
  * @brief Frees a region of memory.
  *
  * @param[in] pointer A pointer to the region to free.
  */
-void platform_free(void *pointer) {
-    // TODO:
-    free(pointer);
-}
+void platform_free(void *pointer) { free(pointer); }
 
 #ifdef DEBUG
 /**
@@ -277,7 +311,7 @@ b8 platform_window_create(const window_config *config, window **result) {
     }
 
     if (index == 0xFFFFFFFF) {
-        DYNARRAY_PUSH(adapter->platform_state->windows, window);
+        DYNARRAY_PUSH(adapter->platform_state->windows, window); // NOLINT
         index = adapter->platform_state->windows.count - 1;
     }
 
@@ -295,7 +329,11 @@ b8 platform_window_create(const window_config *config, window **result) {
         strcpy(window->title, title);
     }
 
-    adapter->window_create(adapter, config, window);
+    if (!adapter->window_create(adapter, config, window)) {
+        mem_free(window->title);
+        mem_free(window);
+        return FALSE;
+    }
 
     *result = window;
     return TRUE;
@@ -344,8 +382,6 @@ void platform_window_destroy(window *window) {
  * @retval FALSE Failure
  */
 b8 platform_window_set_title(window *window, const char *title) {
-    LOG_ERROR("platform_window_set_title not implemented");
-    return FALSE;
     if (title == NULL) {
         return FALSE;
     }
