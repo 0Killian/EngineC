@@ -203,9 +203,6 @@ b8 vulkan_init(renderer_backend_interface *interface, renderer_backend_config *c
         return FALSE;
     }
 
-    // TODO: Remove
-    VkResult result;
-
     if (!vulkan_swapchain_create(state, window->width, window->height, &state->swapchain)) {
         LOG_ERROR("Failed to create vulkan swapchain");
         return FALSE;
@@ -326,6 +323,12 @@ b8 vulkan_command_list_begin(renderer_backend_interface *interface, frame_packet
         LOG_ERROR("Failed to begin frame command buffer");
         return FALSE;
     }
+
+    // Dynamic state
+    VkFrontFace winding = VK_FRONT_FACE_COUNTER_CLOCKWISE;
+    vkCmdSetFrontFace(state->command_buffers[state->current_frame].handle, winding);
+    vkCmdSetDepthTestEnable(state->command_buffers[state->current_frame].handle, VK_TRUE);
+    vkCmdSetDepthWriteEnable(state->command_buffers[state->current_frame].handle, VK_TRUE);
 
     VkImageMemoryBarrier image_barrier = {
         .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
