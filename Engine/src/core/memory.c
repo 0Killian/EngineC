@@ -35,10 +35,11 @@ typedef struct memory_state {
 
 static const char* TAG_LABELS[MEMORY_TAG_MAX_TAGS] = {
     "UNKNOWN",
+    "DYNARRAY",
+    "HASHTABLE",
     "ENGINE",
     "PLATFORM",
     "STRING",
-    "DYNARRAY",
     "RENDERER"
 };
 
