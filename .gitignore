@@ -4,3 +4,6 @@
 bin/
 Makefile
 *.sln
+.clang-format
+compile_commands.json
+.cache/

@@ -54,7 +54,7 @@ b8 filesystem_node_exists(const char* path, filesystem_node_type type);
  * @retval TRUE Success
  * @retval FALSE Failure
  */
-b8 filesystem_node_read(const char* path, void** content, u64* size_requirement);
+b8 filesystem_node_read(const char* path, void* content, u64* size_requirement);
 
 /**
  * @brief Writes the content of a file.

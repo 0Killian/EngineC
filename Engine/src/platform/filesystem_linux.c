@@ -1,10 +1,12 @@
+#define _GNU_SOURCE
 #include "filesystem.h"
 #include "core/log.h"
 
-#if PLATFORM_WINDOWS
-
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
+#if PLATFORM_LINUX
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/stat.h>
+#include <unistd.h>
 
 /**
  * @brief Checks if a file or a directory exists.
@@ -16,11 +18,18 @@
  * @retval FALSE The file does not exist
  */
 b8 filesystem_node_exists(const char* path, filesystem_node_type type) {
-    if (type == FILESYSTEM_NODE_TYPE_FILE) {
-        return (GetFileAttributesA(path) != INVALID_FILE_ATTRIBUTES && !(GetFileAttributesA(path) & FILE_ATTRIBUTE_DIRECTORY));
-    } else if (type == FILESYSTEM_NODE_TYPE_DIRECTORY) {
-        return (GetFileAttributesA(path) != INVALID_FILE_ATTRIBUTES && GetFileAttributesA(path) & FILE_ATTRIBUTE_DIRECTORY);
+    struct stat buffer;
+    if (stat(path, &buffer) != 0) {
+        return FALSE;
     }
+
+    if (type == FILESYSTEM_NODE_TYPE_FILE) {
+        return S_ISREG(buffer.st_mode);
+    } else if (type == FILESYSTEM_NODE_TYPE_DIRECTORY) {
+        return S_ISDIR(buffer.st_mode);
+    }
+
+    return FALSE;
 }
 
 /**
@@ -37,20 +46,22 @@ b8 filesystem_node_exists(const char* path, filesystem_node_type type) {
  * @retval FALSE Failure
  */
 b8 filesystem_node_read(const char* path, void* content, u64* size_requirement) {
-    HANDLE handle = CreateFileA(path, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
-    if (handle == INVALID_HANDLE_VALUE) {
+    struct stat buffer;
+    if (stat(path, &buffer) != 0) {
         return FALSE;
     }
 
-    u64 size = GetFileSize(handle, NULL);
+    u64 size = buffer.st_size;
 
     if (content == NULL || *size_requirement < size) {
         *size_requirement = size;
-        CloseHandle(handle);
         return TRUE;
     }
 
-    ReadFile(handle, content, size, NULL, NULL);
+    FILE *f = fopen(path, "rb");
+    fread(content, 1, size, f);
+    fclose(f);
+    return TRUE;
 }
 
 /**
@@ -67,13 +78,18 @@ b8 filesystem_node_read(const char* path, void* content, u64* size_requirement) 
  * @retval FALSE Failure
  */
 b8 filesystem_node_write(const char* path, void* content, u64 size, b8 create) {
-    HANDLE handle = CreateFileA(path, GENERIC_WRITE, FILE_SHARE_READ, NULL, create ? CREATE_ALWAYS : OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
-    if (handle == INVALID_HANDLE_VALUE) {
+    struct stat buffer;
+    if (stat(path, &buffer) == 0) {
+        if (S_ISDIR(buffer.st_mode)) {
+            return FALSE;
+        }
+    } else if (!create) {
         return FALSE;
     }
 
-    WriteFile(handle, content, size, NULL, NULL);
-    CloseHandle(handle);
+    FILE *f = fopen(path, "wb");
+    fwrite(content, 1, size, f);
+    fclose(f);
     return TRUE;
 }
 
@@ -92,16 +108,16 @@ b8 filesystem_node_write(const char* path, void* content, u64 size, b8 create) {
 b8 filesystem_handle_open(const char* path, filesystem_open_mode mode, filesystem_handle* handle) {
     switch(mode) {
         case FILESYSTEM_OPEN_MODE_READ: {
-            *handle = CreateFileA(path, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
-            return *handle != INVALID_HANDLE_VALUE;
+            *handle = fopen(path, "rb");
+            return *handle != NULL;
         }
         case FILESYSTEM_OPEN_MODE_WRITE: {
-            *handle = CreateFileA(path, GENERIC_WRITE, FILE_SHARE_READ, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
-            return *handle != INVALID_HANDLE_VALUE;
+            *handle = fopen(path, "wb");
+            return *handle != NULL;
         }
         case FILESYSTEM_OPEN_MODE_APPEND: {
-            *handle = CreateFileA(path, GENERIC_WRITE, FILE_SHARE_READ, NULL, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
-            return *handle != INVALID_HANDLE_VALUE;
+            *handle = fopen(path, "ab");
+            return *handle != NULL;
         }
         default: {
             return FALSE;
@@ -118,7 +134,7 @@ b8 filesystem_handle_open(const char* path, filesystem_open_mode mode, filesyste
  * @retval FALSE Failure
  */
 b8 filesystem_handle_close(filesystem_handle handle) {
-    return CloseHandle(handle);
+    return fclose(handle) == 0;
 }
 
 /**
@@ -134,7 +150,7 @@ b8 filesystem_handle_close(filesystem_handle handle) {
  */
 b8 filesystem_handle_read(filesystem_handle handle, u64 size, void* content, u64* read_size) {
     *read_size = 0;
-    return ReadFile(handle, content, size, (LPDWORD)read_size, NULL);
+    return fread(content, 1, size, handle) == size;
 }
 
 
@@ -150,7 +166,9 @@ b8 filesystem_handle_read(filesystem_handle handle, u64 size, void* content, u64
  * @return FALSE Failure (file handling issues or buffer too small)
  */
 b8 filesystem_handle_read_line(filesystem_handle handle, u64 max_size, void* content, u64* line_size) {
-    *line_size = 0;
+    /*
+     * Windows version :
+    line_size = 0;
     if (!ReadFile(handle, content, max_size, (LPDWORD)line_size, NULL)) {
         return FALSE;
     }
@@ -165,6 +183,25 @@ b8 filesystem_handle_read_line(filesystem_handle handle, u64 max_size, void* con
     }
 
     return GetFileSize(handle, NULL) == SetFilePointer(handle, 0, NULL, FILE_CURRENT);
+    */
+
+    *line_size = fread(content, 1, max_size, handle);
+
+    for (u64 i = 0; i < *line_size; i++) {
+        if (((char*)content)[i] == '\n') {
+            fseek(handle, -(*line_size - i + 1), SEEK_CUR);
+            *line_size = i;
+            ((char*)content)[i] = '\0';
+            return TRUE;
+        }
+    }
+
+    u64 file_size;
+    u64 current_pos = ftell(handle);
+    fseek(handle, 0, SEEK_END);
+    file_size = ftell(handle);
+    fseek(handle, current_pos, SEEK_SET);
+    return file_size == current_pos;
 }
 
 /**
@@ -178,7 +215,7 @@ b8 filesystem_handle_read_line(filesystem_handle handle, u64 max_size, void* con
  * @retval FALSE Failure
  */
 b8 filesystem_handle_write(filesystem_handle handle, void* content, u64 size) {
-    return WriteFile(handle, content, size, NULL, NULL);
+    return fwrite(content, 1, size, handle) == size;
 }
 
 /**
@@ -194,13 +231,13 @@ b8 filesystem_handle_write(filesystem_handle handle, void* content, u64 size) {
 b8 filesystem_handle_seek(filesystem_handle handle, i64 offset, filesystem_seek_mode mode) {
     switch(mode) {
         case FILESYSTEM_SEEK_MODE_BEGIN: {
-            return SetFilePointer(handle, offset, NULL, FILE_BEGIN) != INVALID_SET_FILE_POINTER;
+            return fseek(handle, offset, SEEK_SET) == 0;
         }
         case FILESYSTEM_SEEK_MODE_CURRENT: {
-            return SetFilePointer(handle, offset, NULL, FILE_CURRENT) != INVALID_SET_FILE_POINTER;
+            return fseek(handle, offset, SEEK_CUR) == 0;
         }
         case FILESYSTEM_SEEK_MODE_END: {
-            return SetFilePointer(handle, offset, NULL, FILE_END) != INVALID_SET_FILE_POINTER;
+            return fseek(handle, offset, SEEK_END) == 0;
         }
         default: {
             return FALSE;
@@ -218,8 +255,8 @@ b8 filesystem_handle_seek(filesystem_handle handle, i64 offset, filesystem_seek_
  * @retval FALSE Failure
  */
 b8 filesystem_handle_get_position(filesystem_handle handle, u64* position) {
-    *position = SetFilePointer(handle, 0, NULL, FILE_CURRENT);
-    return *position != INVALID_SET_FILE_POINTER;
+    *position = ftell(handle);
+    return *position != -1;
 }
 
 /**
@@ -231,7 +268,7 @@ b8 filesystem_handle_get_position(filesystem_handle handle, u64* position) {
  * @retval FALSE Failure
  */
 b8 filesystem_node_delete(const char* path) {
-    return DeleteFileA(path);
+    return unlink(path) == 0;
 }
 
 #endif

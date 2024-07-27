@@ -25,20 +25,20 @@ typedef struct application {
      * @retval TRUE Success
      * @retval FALSE Failure
      */
-    b8 (*init)(struct application* app);
+    b8 (*init)(struct application *app);
 
     /**
      * @brief Deinitializes the application.
      * 
      * @param[in] app A pointer to the application.
      */
-    void (*deinit)(struct application* app);
+    void (*deinit)(struct application *app);
 
     /** @brief The state of the application. Managed by the application. */
-    void* app_state;
+    void *app_state;
 
     /** @brief The state of the engine. Managed by the engine. */
-    void* engine_state;
+    void *engine_state;
 
     /** @brief The configuration of the window. */
     window_config window_config;
