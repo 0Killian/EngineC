@@ -39,6 +39,29 @@ b8 mem_init();
  */
 void mem_deinit();
 
+#ifdef DEBUG
+
+/**
+ * @brief Allocates a memory region of the given size and tag.
+ *
+ * @param tag The tag of the memory to allocate.
+ * @param size The size of the memory to allocate.
+ * @return A pointer to the allocated memory region.
+ */
+#define mem_alloc(tag, size) _mem_alloc_debug(tag, size, __FILE__, __LINE__, __func__)
+API void *_mem_alloc_debug(memory_tag tag, u64 size, const char *file, u32 line, const char *func);
+
+/**
+ * @brief Allocates an aligned memory region of the given size and tag.
+ *
+ * @param tag The tag of the memory to allocate.
+ * @param size The size of the memory to allocate.
+ * @param alignment The alignment of the memory to allocate.
+ * @return A pointer to the allocated memory region.
+ */
+#define mem_alloc_aligned(tag, size, alignment) _mem_alloc_aligned_debug(tag, size, alignment, __FILE__, __LINE__, __func__)
+API void *_mem_alloc_aligned_debug(memory_tag tag, u64 size, u64 alignment, const char *file, u32 line, const char *func);
+#else
 /**
  * @brief Allocates a memory region of the given size and tag.
  *
@@ -57,6 +80,7 @@ API void *mem_alloc(memory_tag tag, u64 size);
  * @return A pointer to the allocated memory region.
  */
 API void *mem_alloc_aligned(memory_tag tag, u64 size, u64 alignment);
+#endif
 
 /**
  * @brief Frees the given memory region.

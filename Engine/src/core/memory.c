@@ -17,9 +17,9 @@ typedef struct region_header {
     #ifdef DEBUG
         struct region_header* prev;
         struct region_header* next;
-        // NOTE: If the caller is a generic function (like an allocator), we can modify this system to store a call stack
-        // specifically for this function, in order to better locate the memory leak
-        void* caller;
+        const char *file;
+        u32 line;
+        const char *func;
     #endif
 } region_header;
 
@@ -74,7 +74,7 @@ void mem_deinit() {
             #ifdef DEBUG
                 region_header* current = state->regions_list_head[i];
                 while(current != NULL) {
-                    LOG_WARN("  0x%p (%llu bytes) allocated by 0x%p", current, current->size, current->caller);
+                    LOG_WARN("  0x%p (%llu bytes) allocated by %s (%s:%d)", current, current->size, current->func, current->file, current->line);
 
                     current = current->next;
                 }
@@ -85,7 +85,11 @@ void mem_deinit() {
     platform_free(state);
 }
 
-static void* mem_alloc_aligned_with_caller(memory_tag tag, u64 size, u64 alignment, void* caller) {
+#ifdef DEBUG
+void* _mem_alloc_aligned_debug(memory_tag tag, u64 size, u64 alignment, const char *file, u32 line, const char *func) {
+#else
+static void* mem_alloc_aligned(memory_tag tag, u64 size, u64 alignment) {
+#endif
     if (tag == MEMORY_TAG_UNKNOWN) {
         LOG_WARN("An allocation with an unknown tag was requested. Tag this allocation accordingly.");
     }
@@ -109,7 +113,9 @@ static void* mem_alloc_aligned_with_caller(memory_tag tag, u64 size, u64 alignme
     header->tag = tag;
 
     #ifdef DEBUG
-        header->caller = caller;
+        header->file = file;
+        header->line = line;
+        header->func = func;
         header->prev = state->regions_list_tail[tag];
         header->next = NULL;
 
@@ -136,21 +142,15 @@ static void* mem_alloc_aligned_with_caller(memory_tag tag, u64 size, u64 alignme
  * @param size The size of the memory to allocate.
  * @return A pointer to the allocated memory region.
  */
+#ifdef DEBUG
+API void *_mem_alloc_debug(memory_tag tag, u64 size, const char *file, u32 line, const char *func) {
+    return _mem_alloc_aligned_debug(tag, size, 1, file, line, func);
+}
+#else
 API void* mem_alloc(memory_tag tag, u64 size) {
-    return mem_alloc_aligned_with_caller(tag, size, 1, platform_get_caller());
+    return mem_alloc_aligned(tag, size, 1, platform_get_caller());
 }
-
-/**
- * @brief Allocates an aligned memory region of the given size and tag.
- * 
- * @param tag The tag of the memory to allocate.
- * @param size The size of the memory to allocate.
- * @param alignment The alignment of the memory to allocate.
- * @return A pointer to the allocated memory region.
- */
-API void* mem_alloc_aligned(memory_tag tag, u64 size, u64 alignment) {
-    return mem_alloc_aligned_with_caller(tag, size, alignment, platform_get_caller());
-}
+#endif
 
 /**
  * @brief Frees the given memory region.
