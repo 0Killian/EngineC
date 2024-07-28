@@ -1,6 +1,6 @@
 #include "internal_types.h"
 #include "platform/vulkan_platform.h"
-#include <string.h>
+#include <core/str.h>
 #include <vulkan/vulkan.h>
 
 #define LOG_SCOPE "VULKAN DEVICE"
@@ -89,9 +89,10 @@ b8 vulkan_device_select(vulkan_state *state) {
             return FALSE;
         }
 
-        VkExtensionProperties *available_extensions = mem_alloc(MEMORY_TAG_DYNARRAY, sizeof(VkExtensionProperties) * available_extension_count);
-        result = vkEnumerateDeviceExtensionProperties(
-            device.physical_device, NULL, &available_extension_count, available_extensions);
+        VkExtensionProperties *available_extensions =
+            mem_alloc(MEMORY_TAG_DYNARRAY, sizeof(VkExtensionProperties) * available_extension_count);
+        result =
+            vkEnumerateDeviceExtensionProperties(device.physical_device, NULL, &available_extension_count, available_extensions);
         if (result != VK_SUCCESS) {
             LOG_ERROR("Failed to enumerate device extensions: %s", vk_result_to_string(result));
             mem_free(available_extensions);
@@ -103,7 +104,7 @@ b8 vulkan_device_select(vulkan_state *state) {
         for (u32 j = 0; j < needed_extension_count; j++) {
             b8 found = FALSE;
             for (u32 k = 0; k < available_extension_count; k++) {
-                if (strcmp(needed_extensions[j], available_extensions[k].extensionName) == 0) {
+                if (str_eq(needed_extensions[j], available_extensions[k].extensionName)) {
                     found = TRUE;
                     break;
                 }

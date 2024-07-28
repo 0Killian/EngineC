@@ -1,6 +1,6 @@
 #include "hashtable.h"
 #include "memory.h"
-#include <string.h>
+#include "core/str.h"
 
 #define LOG_SCOPE "HASHTABLE"
 #include "core/log.h"
@@ -73,7 +73,7 @@ API b8 hashtable_insert(hashtable *hashtable, const char *key, void *value) {
     hashtable_entry_header *header = (hashtable_entry_header *)(hashtable->data + offset);
 
     if (header->present) {
-        if (strcmp(header->key, key) != 0) {
+        if (!str_eq(header->key, key)) {
             if (!resize_hashtable(hashtable, hashtable->capacity * 2)) {
                 return FALSE;
             }
@@ -84,8 +84,7 @@ API b8 hashtable_insert(hashtable *hashtable, const char *key, void *value) {
     }
 
     header->present = TRUE;
-    header->key = mem_alloc(MEMORY_TAG_HASHTABLE, strlen(key) + 1);
-    mem_copy(header->key, key, strlen(key) + 1);
+    header->key = str_dup(key);
 
     if (hashtable->pointers) {
         *(void **)(header + sizeof(hashtable_entry_header)) = value;
@@ -105,7 +104,7 @@ API b8 hashtable_set(hashtable *hashtable, const char *key, void *value) {
         return FALSE;
     }
 
-    if (strcmp(header->key, key) != 0) {
+    if (!str_eq(header->key, key)) {
         LOG_ERROR("Hash key collision while setting: %s and %s (%d entries)\n This should never happen if hashtable_insert "
                   "verify collisions correctly",
                   header->key,
@@ -138,7 +137,7 @@ API void *hashtable_get(hashtable *hashtable, const char *key) {
         return NULL;
     }
 
-    if (strcmp(header->key, key) != 0) {
+    if (!str_eq(header->key, key)) {
         LOG_WARN("Hash key collision: %s and %s (%d entries)", header->key, key, hashtable->capacity);
         return NULL;
     }
@@ -151,6 +150,13 @@ API void *hashtable_get(hashtable *hashtable, const char *key) {
 }
 
 API void hashtable_destroy(hashtable *hashtable) {
+    for (u64 i = 0; i < hashtable->capacity; i++) {
+        hashtable_entry_header *header = (hashtable_entry_header *)(hashtable->data + (i * (hashtable->element_size + sizeof(hashtable_entry_header))));
+        if (header->present) {
+            mem_free(header->key);
+        }
+    }
+
     mem_free(hashtable->data);
     mem_zero(hashtable, sizeof(struct hashtable));
 }

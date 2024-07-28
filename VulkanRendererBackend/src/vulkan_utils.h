@@ -11,16 +11,15 @@
 #include "internal_types.h"
 #include <common.h>
 #include <core/log.h>
-#include <string.h>
+#include <core/str.h>
 #include <vulkan/vulkan.h>
 
 #ifdef DEBUG
 #define VK_SET_OBJECT_DEBUG_NAME(state, type, object, prefix, name)                             \
     do {                                                                                        \
-        /* TODO: String functions */                                                            \
-        char buffer[256];                                                                       \
-        strcpy(buffer, prefix);                                                                 \
-        strcat(buffer, name);                                                                   \
+        char buffer[256] = {};                                                                  \
+        str_cat(buffer, prefix);                                                                \
+        str_cat(buffer, name);                                                                  \
         const VkDebugUtilsObjectNameInfoEXT name_info = {                                       \
             VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT, NULL, type, (u64)object, buffer \
         };                                                                                      \

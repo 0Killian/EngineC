@@ -1,6 +1,6 @@
 #include "core/plugins.h"
 #include "core/dynamic_array.h"
-#include <string.h>
+#include "core/str.h"
 
 #define LOG_SCOPE "PLUGIN SYSTEM"
 #include "core/log.h"
@@ -42,7 +42,7 @@ b8 plugins_init(void *state_storage, u64 *size_requirement) {
  * 
  * @param[in] state A pointer to the state of the plugin system.
  */
-void plugins_deinit(void *) {
+void plugins_deinit(void *_) {
     for (uuid i = 0; i < state->plugins.count; i++) {
         if (state->plugins.data[i].name == NULL) {
             continue;
@@ -65,8 +65,7 @@ void plugins_deinit(void *) {
  */
 b8 plugins_load(const char *name, plugin *result) {
     for (uuid i = 0; i < state->plugins.count; i++) {
-        // TODO: Strings functions
-        if (strcmp(state->plugins.data[i].name, name) == 0) {
+        if (str_eq(state->plugins.data[i].name, name)) {
             // Already loaded
             return TRUE;
         }

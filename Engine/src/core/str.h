@@ -82,8 +82,8 @@ b8 str_view_eqi_view(str_view a, str_view b);
  * @param[in] a The first string view
  * @param[in] b The second string
  *
- * @retval TRUE The views are equal
- * @retval FALSE The views are not equal
+ * @retval TRUE The strings are equal
+ * @retval FALSE The strings are not equal
  */
 b8 str_view_eq(str_view a, const char *b);
 
@@ -93,10 +93,32 @@ b8 str_view_eq(str_view a, const char *b);
  * @param[in] a The first string view
  * @param[in] b The second string
  *
- * @retval TRUE The views are equal
- * @retval FALSE The views are not equal
+ * @retval TRUE The strings are equal
+ * @retval FALSE The strings are not equal
  */
 b8 str_view_eqi(str_view a, const char *b);
+
+/**
+ * @brief Checks if a string is equal to a string (case sensitive)
+ *
+ * @param[in] a The first string
+ * @param[in] b The second string
+ *
+ * @retval TRUE The strings are equal
+ * @retval FALSE The strings are not equal
+ */
+b8 str_eq(const char *a, const char *b);
+
+/**
+ * @brief Checks if a string is equal to a string (case insensitive)
+ *
+ * @param[in] a The first string
+ * @param[in] b The second string
+ *
+ * @retval TRUE The strings are equal
+ * @retval FALSE The strings are not equal
+ */
+b8 str_eqi(const char *a, const char *b);
 
 /**
  * @brief Copies a string view
@@ -158,7 +180,38 @@ b8 str_view_starts_with(str_view a, const char *chars);
  * @param[in,out] dest The destination string
  * @param[in] view The string view
  */
-void str_cat_view(char **dest, str_view view);
+void str_cat_view_alloc(char **dest, str_view view);
+
+/**
+ * @brief Concatenates a string to the destination string
+ *
+ * @note The destination string must be large enough to hold the resulting string
+ *
+ * @param[in,out] dest The destination string
+ * @param[in] view The string
+ */
+void str_cat_view(char *dest, str_view view);
+
+/**
+ * @brief Concatenates a string to the destination string
+ * If the destination points to a NULL pointer, it will be allocated
+ *
+ * @note The result of this function needs to be freed at some point
+ *
+ * @param[in,out] dest The destination string
+ * @param[in] str The string
+ */
+void str_cat_alloc(char **dest, const char *str);
+
+/**
+ * @brief Concatenates a string to the destination string
+ *
+ * @note The destination string must be large enough to hold the resulting string
+ *
+ * @param[in,out] dest The destination string
+ * @param[in] str The string
+ */
+void str_cat(char *dest, const char *str);
 
 /**
  * @brief Checks if a string contains a substring
@@ -192,3 +245,12 @@ b8 str_view_contains(str_view haystack, const char *needles);
  * @retval FALSE The string does not contain the character
  */
 b8 str_view_contains_char(str_view haystack, char needle);
+
+/**
+ * @brief Returns the length of a string
+ *
+ * @param[in] str The string
+ *
+ * @returns The length of the string
+ */
+u64 str_len(const char *str);

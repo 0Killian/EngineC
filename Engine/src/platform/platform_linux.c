@@ -7,51 +7,52 @@
 #include <dlfcn.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 #include <time.h>
 #include <unistd.h>
+#include "core/str.h"
 
 static const char *convert_platform_color(platform_console_color foreground, platform_console_color background) {
     // Use ANSI codes
     static char output[12];
+    output[0] = '\0';
 
     switch (foreground) {
-    case PLATFORM_CONSOLE_COLOR_BLACK: strcpy(output, "\033[30m"); break;
-    case PLATFORM_CONSOLE_COLOR_BLUE: strcpy(output, "\033[34m"); break;
-    case PLATFORM_CONSOLE_COLOR_GREEN: strcpy(output, "\033[32m"); break;
-    case PLATFORM_CONSOLE_COLOR_CYAN: strcpy(output, "\033[36m"); break;
-    case PLATFORM_CONSOLE_COLOR_RED: strcpy(output, "\033[31m"); break;
-    case PLATFORM_CONSOLE_COLOR_PURPLE: strcpy(output, "\033[35m"); break;
-    case PLATFORM_CONSOLE_COLOR_YELLOW: strcpy(output, "\033[33m"); break;
-    case PLATFORM_CONSOLE_COLOR_WHITE: strcpy(output, "\033[37m"); break;
-    case PLATFORM_CONSOLE_COLOR_GRAY: strcpy(output, "\033[90m"); break;
-    case PLATFORM_CONSOLE_COLOR_LIGHT_BLUE: strcpy(output, "\033[94m"); break;
-    case PLATFORM_CONSOLE_COLOR_LIGHT_GREEN: strcpy(output, "\033[92m"); break;
-    case PLATFORM_CONSOLE_COLOR_LIGHT_CYAN: strcpy(output, "\033[96m"); break;
-    case PLATFORM_CONSOLE_COLOR_LIGHT_RED: strcpy(output, "\033[91m"); break;
-    case PLATFORM_CONSOLE_COLOR_LIGHT_PURPLE: strcpy(output, "\033[95m"); break;
-    case PLATFORM_CONSOLE_COLOR_LIGHT_YELLOW: strcpy(output, "\033[93m"); break;
-    case PLATFORM_CONSOLE_COLOR_BRIGHT_WHITE: strcpy(output, "\033[97m"); break;
+    case PLATFORM_CONSOLE_COLOR_BLACK: str_cat(output, "\033[30m"); break;
+    case PLATFORM_CONSOLE_COLOR_BLUE: str_cat(output, "\033[34m"); break;
+    case PLATFORM_CONSOLE_COLOR_GREEN: str_cat(output, "\033[32m"); break;
+    case PLATFORM_CONSOLE_COLOR_CYAN: str_cat(output, "\033[36m"); break;
+    case PLATFORM_CONSOLE_COLOR_RED: str_cat(output, "\033[31m"); break;
+    case PLATFORM_CONSOLE_COLOR_PURPLE: str_cat(output, "\033[35m"); break;
+    case PLATFORM_CONSOLE_COLOR_YELLOW: str_cat(output, "\033[33m"); break;
+    case PLATFORM_CONSOLE_COLOR_WHITE: str_cat(output, "\033[37m"); break;
+    case PLATFORM_CONSOLE_COLOR_GRAY: str_cat(output, "\033[90m"); break;
+    case PLATFORM_CONSOLE_COLOR_LIGHT_BLUE: str_cat(output, "\033[94m"); break;
+    case PLATFORM_CONSOLE_COLOR_LIGHT_GREEN: str_cat(output, "\033[92m"); break;
+    case PLATFORM_CONSOLE_COLOR_LIGHT_CYAN: str_cat(output, "\033[96m"); break;
+    case PLATFORM_CONSOLE_COLOR_LIGHT_RED: str_cat(output, "\033[91m"); break;
+    case PLATFORM_CONSOLE_COLOR_LIGHT_PURPLE: str_cat(output, "\033[95m"); break;
+    case PLATFORM_CONSOLE_COLOR_LIGHT_YELLOW: str_cat(output, "\033[93m"); break;
+    case PLATFORM_CONSOLE_COLOR_BRIGHT_WHITE: str_cat(output, "\033[97m"); break;
     default: break;
     }
 
     switch (background) {
-    case PLATFORM_CONSOLE_COLOR_BLACK: strcat(output, "\033[40m"); break;
-    case PLATFORM_CONSOLE_COLOR_BLUE: strcat(output, "\033[44m"); break;
-    case PLATFORM_CONSOLE_COLOR_GREEN: strcat(output, "\033[42m"); break;
-    case PLATFORM_CONSOLE_COLOR_CYAN: strcat(output, "\033[46m"); break;
-    case PLATFORM_CONSOLE_COLOR_RED: strcat(output, "\033[41m"); break;
-    case PLATFORM_CONSOLE_COLOR_PURPLE: strcat(output, "\033[45m"); break;
-    case PLATFORM_CONSOLE_COLOR_YELLOW: strcat(output, "\033[43m"); break;
-    case PLATFORM_CONSOLE_COLOR_WHITE: strcat(output, "\033[47m"); break;
-    case PLATFORM_CONSOLE_COLOR_GRAY: strcat(output, "\033[100m"); break;
-    case PLATFORM_CONSOLE_COLOR_LIGHT_BLUE: strcat(output, "\033[104m"); break;
-    case PLATFORM_CONSOLE_COLOR_LIGHT_GREEN: strcat(output, "\033[102m"); break;
-    case PLATFORM_CONSOLE_COLOR_LIGHT_CYAN: strcat(output, "\033[106m"); break;
-    case PLATFORM_CONSOLE_COLOR_LIGHT_RED: strcat(output, "\033[101m"); break;
-    case PLATFORM_CONSOLE_COLOR_LIGHT_PURPLE: strcat(output, "\033[105m"); break;
-    case PLATFORM_CONSOLE_COLOR_LIGHT_YELLOW: strcat(output, "\033[103m"); break;
-    case PLATFORM_CONSOLE_COLOR_BRIGHT_WHITE: strcat(output, "\033[107m"); break;
+    case PLATFORM_CONSOLE_COLOR_BLACK: str_cat(output, "\033[40m"); break;
+    case PLATFORM_CONSOLE_COLOR_BLUE: str_cat(output, "\033[44m"); break;
+    case PLATFORM_CONSOLE_COLOR_GREEN: str_cat(output, "\033[42m"); break;
+    case PLATFORM_CONSOLE_COLOR_CYAN: str_cat(output, "\033[46m"); break;
+    case PLATFORM_CONSOLE_COLOR_RED: str_cat(output, "\033[41m"); break;
+    case PLATFORM_CONSOLE_COLOR_PURPLE: str_cat(output, "\033[45m"); break;
+    case PLATFORM_CONSOLE_COLOR_YELLOW: str_cat(output, "\033[43m"); break;
+    case PLATFORM_CONSOLE_COLOR_WHITE: str_cat(output, "\033[47m"); break;
+    case PLATFORM_CONSOLE_COLOR_GRAY: str_cat(output, "\033[100m"); break;
+    case PLATFORM_CONSOLE_COLOR_LIGHT_BLUE: str_cat(output, "\033[104m"); break;
+    case PLATFORM_CONSOLE_COLOR_LIGHT_GREEN: str_cat(output, "\033[102m"); break;
+    case PLATFORM_CONSOLE_COLOR_LIGHT_CYAN: str_cat(output, "\033[106m"); break;
+    case PLATFORM_CONSOLE_COLOR_LIGHT_RED: str_cat(output, "\033[101m"); break;
+    case PLATFORM_CONSOLE_COLOR_LIGHT_PURPLE: str_cat(output, "\033[105m"); break;
+    case PLATFORM_CONSOLE_COLOR_LIGHT_YELLOW: str_cat(output, "\033[103m"); break;
+    case PLATFORM_CONSOLE_COLOR_BRIGHT_WHITE: str_cat(output, "\033[107m"); break;
     default: break;
     }
 
@@ -90,18 +91,16 @@ b8 platform_init(void *state_storage, u64 *size_requirement) {
     b8 valid_session_type = FALSE;
     const char *xdg_session_type = getenv("XDG_SESSION_TYPE");
     if (xdg_session_type != NULL) {
-        // TODO: String functions
-        if (strcmp(xdg_session_type, "wayland") == 0) {
+        if (str_eq(xdg_session_type, "wayland")) {
             wayland = TRUE;
             valid_session_type = TRUE;
-        } else if (strcmp(xdg_session_type, "x11") == 0) {
+        } else if (str_eq(xdg_session_type, "x11")) {
             wayland = FALSE;
             valid_session_type = TRUE;
         }
     }
 
     if (!valid_session_type) {
-        // TODO: String functions
         const char *wayland_display = getenv("WAYLAND_DISPLAY");
         if (wayland_display != NULL) {
             wayland = TRUE;
@@ -225,10 +224,11 @@ void *platform_get_caller() { return __builtin_return_address(1); }
  * @retval FALSE Failure
  */
 b8 platform_dynamic_library_open(const char *name, dynamic_library *result) {
-    char *new_string = mem_alloc(MEMORY_TAG_STRING, strlen(name) + 7);
-    strcpy(new_string, "lib");
-    strcat(new_string, name);
-    strcat(new_string, ".so");
+    char *new_string = mem_alloc(MEMORY_TAG_STRING, str_len(name) + 7);
+    new_string[0] = 0;
+    str_cat(new_string, "lib");
+    str_cat(new_string, name);
+    str_cat(new_string, ".so");
     *result = dlopen(new_string, RTLD_LAZY | RTLD_LOCAL);
 
     if (*result == NULL) {
@@ -247,9 +247,9 @@ b8 platform_dynamic_library_open(const char *name, dynamic_library *result) {
             size--;
         }
 
-        char *lib_path = mem_alloc(MEMORY_TAG_STRING, strlen(executable_path) + strlen(new_string) + 1);
-        strcpy(lib_path, executable_path);
-        strcat(lib_path, new_string);
+        char *lib_path = mem_alloc(MEMORY_TAG_STRING, str_len(executable_path) + str_len(new_string) + 1);
+        str_cat(lib_path, executable_path);
+        str_cat(lib_path, new_string);
 
         *result = dlopen(lib_path, RTLD_LAZY | RTLD_LOCAL);
         mem_free(lib_path);
@@ -319,14 +319,9 @@ b8 platform_window_create(const window_config *config, window **result) {
     window->height = config->height;
 
     if (config->title) {
-        // TODO: String functions
-        window->title = (char *)mem_alloc(MEMORY_TAG_STRING, strlen(config->title) + 1);
-        strcpy(window->title, config->title);
+        window->title = str_dup(config->title);
     } else {
-        // TODO: String functions
-        const char *title = "Engine Window";
-        window->title = (char *)mem_alloc(MEMORY_TAG_STRING, strlen(title) + 1);
-        strcpy(window->title, title);
+        window->title = str_dup("Untitled");
     }
 
     if (!adapter->window_create(adapter, config, window)) {
@@ -388,8 +383,7 @@ b8 platform_window_set_title(window *window, const char *title) {
 
     mem_free(window->title);
 
-    window->title = (char *)mem_alloc(MEMORY_TAG_STRING, strlen(title) + 1);
-    strcpy(window->title, title);
+    window->title = str_dup(title);
 
     adapter->window_set_title(adapter, window, title);
 

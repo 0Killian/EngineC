@@ -71,6 +71,14 @@ b8 str_view_eqi(str_view a, const char *b) {
     return a.size == strlen(b) && strcasecmp(a.begin, b) == 0;
 }
 
+b8 str_eq(const char *a, const char *b) {
+    return strcmp(a, b) == 0;
+}
+
+b8 str_eqi(const char *a, const char *b) {
+    return strcasecmp(a, b) == 0;
+}
+
 char *str_view_dup(str_view view) {
     char *dup = mem_alloc(MEMORY_TAG_STRING, view.size + 1);
     mem_copy(dup, view.begin, view.size);
@@ -105,19 +113,42 @@ b8 str_view_starts_with(str_view view, const char *delims) {
     return FALSE;
 }
 
-void str_cat_view(char **dest, str_view view) {
+void str_cat_view_alloc(char **dest, str_view view) {
     char *new = mem_alloc(MEMORY_TAG_STRING, (*dest ? strlen(*dest) : 0) + view.size + 1);
     if (*dest) {
         mem_copy(new, *dest, strlen(*dest));
     }
 
-    mem_copy(new + (*dest ? strlen(*dest) : 0), view.begin, view.size);
-    new[(*dest ? strlen(*dest) : 0) + view.size] = 0;
+    str_cat_view(new, view);
     
     if (*dest) {
         mem_free(*dest);
     }
     *dest = new;
+}
+
+void str_cat_view(char *dest, str_view view) {
+    mem_copy(dest + strlen(dest), view.begin, view.size);
+    dest[strlen(dest) + view.size] = 0;
+}
+
+void str_cat_alloc(char **dest, const char *str) {
+    char *new = mem_alloc(MEMORY_TAG_STRING, strlen(*dest) + strlen(str) + 1);
+    if (*dest) {
+        mem_copy(new, *dest, strlen(*dest));
+    }
+
+    str_cat(new, str);
+
+    if (*dest) {
+        mem_free(*dest);
+    }
+    *dest = new;
+}
+
+void str_cat(char *dest, const char *str) {
+    mem_copy(dest + strlen(dest), str, strlen(str));
+    dest[strlen(dest) + strlen(str)] = 0;
 }
 
 b8 str_contains_str(const char *haystack, const char *needle) {
@@ -144,4 +175,8 @@ b8 str_view_contains_char(str_view haystack, char needle) {
     }
 
     return FALSE;
+}
+
+u64 str_len(const char *str) {
+    return strlen(str);
 }
