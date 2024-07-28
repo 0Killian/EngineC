@@ -24,6 +24,4 @@
 /** @brief Return the clamped value */
 #define CLAMP(x, min, max) MAX(min, MIN(x, max))
 
-static inline f32 pow32(f32 x, f32 y) {
-    return powf(x, y);
-}
+static inline f32 pow32(f32 x, f32 y) { return powf(x, y); }

@@ -7,24 +7,24 @@ typedef struct event_callback_entry {
     void *user_data;
 } event_callback_entry;
 
-typedef struct event_system_state {
+struct event_system_state {
     DYNARRAY(event_callback_entry) callbacks[EVENT_TYPE_MAX_EVENTS];
-} event_system_state;
+};
 
 static event_system_state *state = NULL;
 
 /**
  * @brief Initializes the event system.
- * 
+ *
  * Should be called twice, once to get the required allocation size (with state == NULL), and a second time to actually
  * initialize the event system (with state != NULL).
- * 
+ *
  * @param[in] state A pointer to a memory region to store the state of the event system. To obtain the needed size, pass NULL.
  * @param[out] size_requirement A pointer to the size of the memory that should be allocated.
  * @retval TRUE Success
  * @retval FALSE Failure
  */
-b8 event_init(void *state_storage, u64 *size_requirement) {
+b8 event_init(event_system_state *state_storage, u64 *size_requirement) {
     if (state_storage == NULL) {
         *size_requirement = sizeof(event_system_state);
         return TRUE;
@@ -42,10 +42,10 @@ b8 event_init(void *state_storage, u64 *size_requirement) {
 
 /**
  * @brief Deinitializes the event system.
- * 
+ *
  * @param[in] state A pointer to the state of the event system.
  */
-void event_deinit(void *) {
+void event_deinit(event_system_state *state) {
     if (state != NULL) {
         for (u32 i = 0; i < EVENT_TYPE_MAX_EVENTS; i++) {
             for (u32 j = 0; j < state->callbacks[i].count; j++) {
@@ -63,12 +63,12 @@ void event_deinit(void *) {
 
 /**
  * @brief Register a callback to be called when an event is fired, identified by its type and the resulting UUID.
- * 
+ *
  * @param[in] type The type of the event.
  * @param[in] callback The callback to register.
  * @param[in] user_data The user data to pass to the callback.
  * @param[out] result A pointer to a memory region to store the resulting UUID.
- * 
+ *
  * @retval TRUE Success
  * @retval FALSE Failure
  */
@@ -95,10 +95,10 @@ b8 event_register_callback(event_type type, event_callback callback, void *user_
 
 /**
  * @brief Unregister a callback.
- * 
+ *
  * @param[in] type The type of the event.
  * @param[in] uuid The UUID of the callback to unregister.
- * 
+ *
  * @retval TRUE Success
  * @retval FALSE Failure
  */
@@ -113,10 +113,10 @@ b8 event_unregister_callback(event_type type, uuid uuid) {
 
 /**
  * @brief Fires an event.
- * 
+ *
  * @param[in] type The type of the event.
  * @param[in] data The data of the event.
- * 
+ *
  * @retval TRUE Success
  * @retval FALSE Failure
  */

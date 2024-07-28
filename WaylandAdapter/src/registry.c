@@ -11,7 +11,7 @@ void wayland_registry_handle_global(void *data, struct wl_registry *registry, u3
 
     if (interface == NULL) {
         LOG_ERROR("interface is NULL");
-        return; 
+        return;
     }
 
     if (str_eq(interface, "wl_compositor")) {
@@ -23,10 +23,9 @@ void wayland_registry_handle_global(void *data, struct wl_registry *registry, u3
         adapter->adapter_state->shell = wl_registry_bind(registry, name, &xdg_wm_base_interface, version);
         xdg_wm_base_add_listener(adapter->adapter_state->shell, &adapter->adapter_state->shell_listener, adapter);
     } else if (str_eq(interface, "zxdg_decoration_manager_v1")) {
-        adapter->adapter_state->decoration_manager = wl_registry_bind(registry, name, &zxdg_decoration_manager_v1_interface, version);
+        adapter->adapter_state->decoration_manager =
+            wl_registry_bind(registry, name, &zxdg_decoration_manager_v1_interface, version);
     }
 }
 
-void wayland_registry_handle_global_remove(void *data, struct wl_registry *registry, u32 name) {
-
-}
+void wayland_registry_handle_global_remove(void *data, struct wl_registry *registry, u32 name) {}

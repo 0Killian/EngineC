@@ -80,8 +80,7 @@ b8 vulkan_image_create(vulkan_state *state,
 
     vkBindImageMemory(state->device.logical_device, image->handle, image->memory, 0);
 
-    image->name = mem_alloc(MEMORY_TAG_STRING, strlen(name) + 1);
-    strcpy(image->name, name);
+    image->name = str_dup(name);
 
     if (create_view) {
         if (!vulkan_image_view_create(state, image, format, view_aspect_flags)) {

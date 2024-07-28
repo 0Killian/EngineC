@@ -11,9 +11,10 @@
 #include "xdg-decoration-client-protocol.h"
 #include "xdg-shell-client-protocol.h"
 #include <common.h>
-#include <wayland-client.h>
 #include <libdecor-0/libdecor.h>
+#include <wayland-client.h>
 
+/** @brief The state of the wayland linux adapter */
 struct linux_adapter_state {
     struct wl_display *display;
     struct wl_registry *registry;
@@ -44,6 +45,7 @@ struct linux_adapter_state {
     uuid keyboard_focus;
 };
 
+/** @brief The window state of the wayland linux adapter */
 struct window_platform_state {
     struct linux_adapter *adapter;
     struct wl_surface *surface;

@@ -32,15 +32,13 @@ static b8 recreate_frame_resources(vulkan_state *state, u32 current_frame_count)
             vkWaitForFences(state->device.logical_device, 1, &state->in_flight_fences[i], VK_TRUE, UINT64_MAX);
 
             if (state->render_finished_semaphores[i] != VK_NULL_HANDLE) {
-                vkDestroySemaphore(state->device.logical_device,
-                                   state->render_finished_semaphores[i],
-                                   state->allocation_callbacks);
+                vkDestroySemaphore(
+                    state->device.logical_device, state->render_finished_semaphores[i], state->allocation_callbacks);
             }
 
             if (state->image_available_semaphores[i] != VK_NULL_HANDLE) {
-                vkDestroySemaphore(state->device.logical_device,
-                                   state->image_available_semaphores[i],
-                                   state->allocation_callbacks);
+                vkDestroySemaphore(
+                    state->device.logical_device, state->image_available_semaphores[i], state->allocation_callbacks);
             }
 
             if (state->in_flight_fences[i] != VK_NULL_HANDLE) {
@@ -60,10 +58,13 @@ static b8 recreate_frame_resources(vulkan_state *state, u32 current_frame_count)
         return TRUE;
     }
 
-    state->image_available_semaphores = mem_alloc(MEMORY_TAG_RENDERER, state->swapchain.max_frames_in_flight * sizeof(VkSemaphore));
-    state->render_finished_semaphores = mem_alloc(MEMORY_TAG_RENDERER, state->swapchain.max_frames_in_flight * sizeof(VkSemaphore));
+    state->image_available_semaphores =
+        mem_alloc(MEMORY_TAG_RENDERER, state->swapchain.max_frames_in_flight * sizeof(VkSemaphore));
+    state->render_finished_semaphores =
+        mem_alloc(MEMORY_TAG_RENDERER, state->swapchain.max_frames_in_flight * sizeof(VkSemaphore));
     state->in_flight_fences = mem_alloc(MEMORY_TAG_RENDERER, state->swapchain.max_frames_in_flight * sizeof(VkFence));
-    state->command_buffers = mem_alloc(MEMORY_TAG_RENDERER, state->swapchain.max_frames_in_flight * sizeof(vulkan_command_buffer));
+    state->command_buffers =
+        mem_alloc(MEMORY_TAG_RENDERER, state->swapchain.max_frames_in_flight * sizeof(vulkan_command_buffer));
 
     mem_zero(state->image_available_semaphores, sizeof(VkSemaphore) * state->swapchain.max_frames_in_flight);
     mem_zero(state->render_finished_semaphores, sizeof(VkSemaphore) * state->swapchain.max_frames_in_flight);
@@ -92,29 +93,39 @@ static b8 recreate_frame_resources(vulkan_state *state, u32 current_frame_count)
             .flags = VK_FENCE_CREATE_SIGNALED_BIT,
         };
 
-        VkResult result = vkCreateSemaphore(state->device.logical_device, &semaphore_create_info, state->allocation_callbacks, &state->image_available_semaphores[i]);
+        VkResult result = vkCreateSemaphore(state->device.logical_device,
+                                            &semaphore_create_info,
+                                            state->allocation_callbacks,
+                                            &state->image_available_semaphores[i]);
         if (result != VK_SUCCESS) {
             LOG_ERROR("Failed to create image available semaphore");
             goto destroy;
         }
 
-        result = vkCreateSemaphore(state->device.logical_device, &semaphore_create_info, state->allocation_callbacks, &state->render_finished_semaphores[i]);
+        result = vkCreateSemaphore(state->device.logical_device,
+                                   &semaphore_create_info,
+                                   state->allocation_callbacks,
+                                   &state->render_finished_semaphores[i]);
         if (result != VK_SUCCESS) {
             LOG_ERROR("Failed to create render finished semaphore");
             goto destroy;
         }
 
-        result = vkCreateFence(state->device.logical_device, &fence_create_info, state->allocation_callbacks, &state->in_flight_fences[i]);
+        result = vkCreateFence(
+            state->device.logical_device, &fence_create_info, state->allocation_callbacks, &state->in_flight_fences[i]);
         if (result != VK_SUCCESS) {
             LOG_ERROR("Failed to create in flight fence");
             goto destroy;
         }
 
-        VK_SET_OBJECT_DEBUG_NAME(state, VK_OBJECT_TYPE_SEMAPHORE, state->image_available_semaphores[i], "Semaphore.", ia_semaphore_name);
-        VK_SET_OBJECT_DEBUG_NAME(state, VK_OBJECT_TYPE_SEMAPHORE, state->render_finished_semaphores[i], "Semaphore.", rf_semaphore_name);
+        VK_SET_OBJECT_DEBUG_NAME(
+            state, VK_OBJECT_TYPE_SEMAPHORE, state->image_available_semaphores[i], "Semaphore.", ia_semaphore_name);
+        VK_SET_OBJECT_DEBUG_NAME(
+            state, VK_OBJECT_TYPE_SEMAPHORE, state->render_finished_semaphores[i], "Semaphore.", rf_semaphore_name);
         VK_SET_OBJECT_DEBUG_NAME(state, VK_OBJECT_TYPE_FENCE, state->in_flight_fences[i], "Fence.", buffer_name);
 
-        if (!vulkan_command_buffer_alloc(state, state->device.graphics_command_pool, buffer_name, TRUE, &state->command_buffers[i])) {
+        if (!vulkan_command_buffer_alloc(
+                state, state->device.graphics_command_pool, buffer_name, TRUE, &state->command_buffers[i])) {
             LOG_ERROR("Failed to allocate command buffer");
             goto destroy;
         }
@@ -125,15 +136,11 @@ static b8 recreate_frame_resources(vulkan_state *state, u32 current_frame_count)
 destroy:
     for (u32 i = 0; i < state->swapchain.max_frames_in_flight; i++) {
         if (state->render_finished_semaphores[i] != VK_NULL_HANDLE) {
-            vkDestroySemaphore(state->device.logical_device,
-                               state->render_finished_semaphores[i],
-                               state->allocation_callbacks);
+            vkDestroySemaphore(state->device.logical_device, state->render_finished_semaphores[i], state->allocation_callbacks);
         }
 
         if (state->image_available_semaphores[i] != VK_NULL_HANDLE) {
-            vkDestroySemaphore(state->device.logical_device,
-                               state->image_available_semaphores[i],
-                               state->allocation_callbacks);
+            vkDestroySemaphore(state->device.logical_device, state->image_available_semaphores[i], state->allocation_callbacks);
         }
 
         if (state->in_flight_fences[i] != VK_NULL_HANDLE) {

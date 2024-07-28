@@ -9,8 +9,8 @@
 #pragma once
 
 #include "common.h"
-#include "platform/platform.h"
 #include "frame_packet.h"
+#include "platform/platform.h"
 
 /** @brief The configuration of the renderer backend. */
 typedef struct renderer_backend_config {
@@ -22,14 +22,14 @@ typedef struct renderer_backend_config {
 typedef struct renderer_backend_interface {
     /** @brief Internal data managed by the backend. */
     void *internal_data;
-    
+
     /**
      * @brief Initializes the renderer backend, using the configuration passed in.
-     * 
+     *
      * @param[in] backend A pointer to the backend interface.
      * @param[in] config A pointer to the configuration.
      * @param[in] window A pointer to the window.
-     * 
+     *
      * @retval TRUE Success
      * @retval FALSE Failure
      */
@@ -37,7 +37,7 @@ typedef struct renderer_backend_interface {
 
     /**
      * @brief Deinitializes the renderer backend.
-     * 
+     *
      * @param[in] backend A pointer to the backend interface.
      */
     void (*deinit)(struct renderer_backend_interface *backend);

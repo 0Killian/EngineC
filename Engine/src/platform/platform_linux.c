@@ -2,6 +2,7 @@
 #include "core/dynamic_array.h"
 #include "core/log.h"
 #include "core/memory.h"
+#include "core/str.h"
 #include "linux_adapter.h"
 #include "platform.h"
 #include <dlfcn.h>
@@ -9,7 +10,6 @@
 #include <stdlib.h>
 #include <time.h>
 #include <unistd.h>
-#include "core/str.h"
 
 static const char *convert_platform_color(platform_console_color foreground, platform_console_color background) {
     // Use ANSI codes
@@ -73,15 +73,15 @@ linux_adapter *adapter = NULL;
  * @retval TRUE Success
  * @retval FALSE Failure
  */
-b8 platform_init(void *state_storage, u64 *size_requirement) {
+b8 platform_init(platform_system_state *state_storage, u64 *size_requirement) {
     if (state_storage == NULL) {
         // Fill out the size requirement and boot out
-        *size_requirement = sizeof(platform_state);
+        *size_requirement = sizeof(platform_system_state);
         return TRUE;
     }
 
-    platform_state *state = state_storage;
-    mem_zero(state, sizeof(platform_state));
+    platform_system_state *state = state_storage;
+    mem_zero(state, sizeof(platform_system_state));
 
     // Detect the used display manager
     // We first check the XDG_SESSION_TYPE environment variable
@@ -147,7 +147,7 @@ b8 platform_init(void *state_storage, u64 *size_requirement) {
  *
  * @param [in] state A pointer to the state of the platform layer.
  */
-void platform_deinit(void *_) {
+void platform_deinit(platform_system_state *state) {
     if (adapter) {
         for (u32 i = 0; i < adapter->platform_state->windows.count; i++) {
             if (adapter->platform_state->windows.data[i]) {
@@ -225,7 +225,7 @@ void *platform_get_caller() { return __builtin_return_address(1); }
  */
 b8 platform_dynamic_library_open(const char *name, dynamic_library *result) {
     char *new_string = mem_alloc(MEMORY_TAG_STRING, str_len(name) + 7);
-    new_string[0] = 0;
+    mem_zero(new_string, str_len(name) + 7);
     str_cat(new_string, "lib");
     str_cat(new_string, name);
     str_cat(new_string, ".so");
@@ -248,6 +248,7 @@ b8 platform_dynamic_library_open(const char *name, dynamic_library *result) {
         }
 
         char *lib_path = mem_alloc(MEMORY_TAG_STRING, str_len(executable_path) + str_len(new_string) + 1);
+        mem_zero(lib_path, str_len(executable_path) + str_len(new_string) + 1);
         str_cat(lib_path, executable_path);
         str_cat(lib_path, new_string);
 

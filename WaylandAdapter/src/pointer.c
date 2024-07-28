@@ -1,9 +1,10 @@
 #include "pointer.h"
 #include "wayland_adapter.h"
-#include <platform/linux_adapter.h>
 #include <core/event.h>
+#include <platform/linux_adapter.h>
 
-void wayland_pointer_handle_enter(void *data, struct wl_pointer *wl_pointer, uint32_t serial, struct wl_surface *surface, wl_fixed_t sx, wl_fixed_t sy) {
+void wayland_pointer_handle_enter(
+    void *data, struct wl_pointer *wl_pointer, uint32_t serial, struct wl_surface *surface, wl_fixed_t sx, wl_fixed_t sy) {
     (void)wl_pointer;
     (void)serial;
     linux_adapter *adapter = (linux_adapter *)data;
@@ -16,10 +17,7 @@ void wayland_pointer_handle_enter(void *data, struct wl_pointer *wl_pointer, uin
     }
 
     event_data event = {
-        .vec2f = {
-            .x = wl_fixed_to_double(sx),
-            .y = wl_fixed_to_double(sy)
-        }
+        .vec2f = { .x = wl_fixed_to_double(sx), .y = wl_fixed_to_double(sy) }
     };
 
     event_fire(EVENT_TYPE_MOUSE_MOVED, event);
@@ -41,17 +39,15 @@ void wayland_pointer_handle_motion(void *data, struct wl_pointer *wl_pointer, ui
 
     if (adapter->adapter_state->pointer_focus != INVALID_UUID) {
         event_data event = {
-            .vec2f = {
-                .x = wl_fixed_to_double(sx),
-                .y = wl_fixed_to_double(sy)
-            }
+            .vec2f = { .x = wl_fixed_to_double(sx), .y = wl_fixed_to_double(sy) }
         };
 
         event_fire(EVENT_TYPE_MOUSE_MOVED, event);
     }
 }
 
-void wayland_pointer_handle_button(void *data, struct wl_pointer *wl_pointer, uint32_t serial, uint32_t time, uint32_t button, uint32_t state) {
+void wayland_pointer_handle_button(
+    void *data, struct wl_pointer *wl_pointer, uint32_t serial, uint32_t time, uint32_t button, uint32_t state) {
     (void)wl_pointer;
     (void)serial;
     (void)time;
@@ -60,7 +56,8 @@ void wayland_pointer_handle_button(void *data, struct wl_pointer *wl_pointer, ui
     if (adapter->adapter_state->pointer_focus != INVALID_UUID) {
         event_data event = { .u32 = button - 0x110 }; // button - BTN_MOUSE
 
-        event_fire(state == WL_POINTER_BUTTON_STATE_PRESSED ? EVENT_TYPE_MOUSE_BUTTON_PRESSED : EVENT_TYPE_MOUSE_BUTTON_RELEASED, event);
+        event_fire(state == WL_POINTER_BUTTON_STATE_PRESSED ? EVENT_TYPE_MOUSE_BUTTON_PRESSED : EVENT_TYPE_MOUSE_BUTTON_RELEASED,
+                   event);
     }
 }
 
@@ -71,9 +68,7 @@ void wayland_pointer_handle_axis(void *data, struct wl_pointer *wl_pointer, uint
 
     if (adapter->adapter_state->pointer_focus != INVALID_UUID) {
         if (axis == WL_POINTER_AXIS_VERTICAL_SCROLL) {
-            event_data event = {
-                .f32 = wl_fixed_to_double(value)
-            };
+            event_data event = { .f32 = wl_fixed_to_double(value) };
 
             event_fire(EVENT_TYPE_MOUSE_WHEEL, event);
         }
@@ -112,7 +107,10 @@ void wayland_pointer_handle_axis_value120(void *data, struct wl_pointer *wl_poin
     (void)value120;
 }
 
-void wayland_pointer_handle_axis_relative_direction(void *data, struct wl_pointer *wl_pointer, uint32_t axis, uint32_t direction) {
+void wayland_pointer_handle_axis_relative_direction(void *data,
+                                                    struct wl_pointer *wl_pointer,
+                                                    uint32_t axis,
+                                                    uint32_t direction) {
     (void)data;
     (void)wl_pointer;
     (void)axis;

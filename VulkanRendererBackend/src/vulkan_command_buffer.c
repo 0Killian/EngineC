@@ -48,9 +48,7 @@ b8 vulkan_command_buffer_alloc(
 
     VK_SET_OBJECT_DEBUG_NAME(state, VK_OBJECT_TYPE_COMMAND_BUFFER, command_buffer->handle, "CommandBuffer.", name);
 
-    command_buffer->name = mem_alloc(MEMORY_TAG_RENDERER, strlen(name) + 1);
-    strcpy(command_buffer->name, name);
-
+    command_buffer->name = str_dup(name);
     command_buffer->state = COMMAND_BUFFER_STATE_READY;
 
     return TRUE;

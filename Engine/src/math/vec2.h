@@ -22,10 +22,10 @@ typedef union vec2f {
 
 /**
  * @brief Checks if the two vectors are equal.
- * 
+ *
  * @param[in] a The first vector.
  * @param[in] b The second vector.
- * 
+ *
  * @retval TRUE The vectors are equal.
  * @retval FALSE The vectors are not equal.
  */
@@ -35,12 +35,10 @@ static inline b8 vec2f_equals(vec2f a, vec2f b) {
 
 /**
  * @brief Subtracts the second vector from the first.
- * 
+ *
  * @param[in] a The first vector.
  * @param[in] b The second vector.
- * 
+ *
  * @return The difference between the two vectors.
  */
-static inline vec2f vec2f_sub(vec2f a, vec2f b) {
-    return (vec2f) { ._mmv = _mm_sub_ps(a._mmv, b._mmv) };
-}
+static inline vec2f vec2f_sub(vec2f a, vec2f b) { return (vec2f){ ._mmv = _mm_sub_ps(a._mmv, b._mmv) }; }

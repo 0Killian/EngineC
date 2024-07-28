@@ -11,24 +11,24 @@
 
 #pragma once
 
-#include "common.h"
 #include "application.h"
+#include "common.h"
 #include "core/engine.h"
 #include "core/log.h"
 
 /**
  * @brief User-provided function for creating the application.
- * 
+ *
  * This function must be used to set the configure the engine, and hook the application into it.
- * 
+ *
  * @param[out] app A pointer to hold the application created by this function.
- * 
+ *
  * @retval TRUE Success
  * @retval FALSE Failure
- * 
+ *
  * @see application
  */
-extern b8 create_application(application* app);
+extern b8 create_application(application *app);
 
 /**
  * @brief The entry point of the application.

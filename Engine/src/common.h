@@ -8,8 +8,8 @@
 
 #pragma once
 
-#include <stdint.h>
 #include <stddef.h>
+#include <stdint.h>
 
 typedef uint8_t u8;
 typedef uint16_t u16;
@@ -27,17 +27,17 @@ typedef u8 b8;
 #define TRUE 1
 
 #ifdef _MSC_VER
-    #ifdef EXPORT
-        #define API __declspec(dllexport)
-    #else
-        #define API __declspec(dllimport)
-    #endif
+#ifdef EXPORT
+#define API __declspec(dllexport)
 #else
-    #ifdef EXPORT
-        #define API __attribute__((visibility("default")))
-    #else
-        #define API
-    #endif
+#define API __declspec(dllimport)
+#endif
+#else
+#ifdef EXPORT
+#define API __attribute__((visibility("default")))
+#else
+#define API
+#endif
 #endif
 
 typedef u32 uuid;

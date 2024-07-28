@@ -1,8 +1,6 @@
+#ifdef PLATFORM_WINDOWS
 #include "platform/vulkan_platform.h"
 #include "vulkan_utils.h"
-
-#ifdef PLATFORM_WINDOWS
-
 #include <vulkan/vulkan_win32.h>
 #include <windows.h>
 

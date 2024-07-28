@@ -12,19 +12,19 @@
 #include <winuser.h>
 
 /** @brief State of the platform layer. */
-typedef struct platform_state {
+struct platform_system_state {
     DYNARRAY(window *) windows;
     platform_window_closed_callback window_closed_callback;
 
     f64 clock_frequency;
     LARGE_INTEGER clock_start_time;
-} platform_state;
+};
 
-typedef struct window_platform_state {
+struct window_platform_state {
     HWND handle;
-} window_platform_state;
+};
 
-static platform_state *state;
+static platform_system_state *state;
 
 static LRESULT CALLBACK wnd_proc_bootstrap(HWND, UINT, WPARAM, LPARAM);
 static LRESULT CALLBACK wnd_proc_stub(HWND, UINT, WPARAM, LPARAM);
@@ -80,15 +80,15 @@ static void show_error_message_box(const char *title, const char *message) {
  * @retval TRUE Success
  * @retval FALSE Failure
  */
-b8 platform_init(void *state_storage, u64 *size_requirement) {
+b8 platform_init(platform_system_state *state_storage, u64 *size_requirement) {
     if (state_storage == NULL) {
         // Fill out the size requirement and boot out
-        *size_requirement = sizeof(platform_state);
+        *size_requirement = sizeof(platform_system_state);
         return TRUE;
     }
 
     state = state_storage;
-    mem_zero(state, sizeof(platform_state));
+    mem_zero(state, sizeof(platform_system_state));
 
 // Detect corruptions and terminate the application at any time
 #ifdef DEBUG
@@ -116,7 +116,7 @@ b8 platform_init(void *state_storage, u64 *size_requirement) {
                                  .hbrBackground = (HBRUSH)GetStockObject(BLACK_BRUSH),
                                  .lpszMenuName = NULL,
                                  .lpszClassName = "EngineWindow",
-                                 .hIconSm = icon };
+                                 .hIconSm = icon, };
 
     if (!RegisterClassExA(&window_class)) {
         show_error_message_box("Error", "Failed to register window class");
@@ -132,7 +132,7 @@ b8 platform_init(void *state_storage, u64 *size_requirement) {
  *
  * @param [in] state A pointer to the state of the platform layer.
  */
-void platform_deinit(void *) {
+void platform_deinit(platform_system_state *state) {
     if (state) {
         for (u32 i = 0; i < state->windows.count; i++) {
             if (state->windows.data[i]) {

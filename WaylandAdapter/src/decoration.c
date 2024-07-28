@@ -1,8 +1,8 @@
 #include "decoration.h"
 #include "wayland_adapter.h"
+#include <core/event.h>
 #include <libdecor-0/libdecor.h>
 #include <platform/linux_adapter.h>
-#include <core/event.h>
 
 #define LOG_SCOPE "WAYLAND ADAPTER"
 #include <core/log.h>
@@ -34,7 +34,9 @@ void wayland_decoration_handle_error_csd(struct libdecor *decorator, enum libdec
     LOG_ERROR("libdecor error: %s", message);
 }
 
-void wayland_decoration_handle_configure_csd(struct libdecor_frame *frame, struct libdecor_configuration *configuration, void *data) {
+void wayland_decoration_handle_configure_csd(struct libdecor_frame *frame,
+                                             struct libdecor_configuration *configuration,
+                                             void *data) {
     window *window = data;
     i32 width = 0, height = 0;
     struct libdecor_state *state;
@@ -63,7 +65,9 @@ void wayland_decoration_handle_configure_csd(struct libdecor_frame *frame, struc
         window->resizing = TRUE;
         window->frames_since_resize = 0;
 
-        event_data event = { .vec2f = { .x = window->width, .y = window->height } };
+        event_data event = {
+            .vec2f = { .x = window->width, .y = window->height }
+        };
         event_fire(EVENT_TYPE_WINDOW_RESIZED, event);
     }
 }
@@ -89,7 +93,10 @@ void wayland_decoration_handle_dismiss_popup_csd(struct libdecor_frame *frame, c
 b8 wayland_setup_csd(window *window) {
     linux_adapter *adapter = window->platform_state->adapter;
 
-    window->platform_state->frame = libdecor_decorate(adapter->adapter_state->decorator, window->platform_state->surface, &adapter->adapter_state->libdecor_frame_iface, window);
+    window->platform_state->frame = libdecor_decorate(adapter->adapter_state->decorator,
+                                                      window->platform_state->surface,
+                                                      &adapter->adapter_state->libdecor_frame_iface,
+                                                      window);
 
     libdecor_frame_set_title(window->platform_state->frame, window->title);
     libdecor_frame_map(window->platform_state->frame);

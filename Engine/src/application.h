@@ -14,15 +14,15 @@
 
 /**
  * @brief Holds the state of the application and the engine.
- * 
+ *
  * Created by @ref create_application.
  */
 typedef struct application {
     /**
      * @brief Initializes the application.
-     * 
+     *
      * @param[in] app A pointer to the application.
-     * 
+     *
      * @retval TRUE Success
      * @retval FALSE Failure
      */
@@ -30,7 +30,7 @@ typedef struct application {
 
     /**
      * @brief Updates the application.
-     * 
+     *
      * @param[in] app A pointer to the application.
      * @param[in] delta_time The delta time.
      */
@@ -38,7 +38,7 @@ typedef struct application {
 
     /**
      * @brief Prepares the frame for rendering.
-     * 
+     *
      * @param[in] app A pointer to the application.
      * @param[in] frame_packet A pointer to the frame packet.
      */
@@ -46,7 +46,7 @@ typedef struct application {
 
     /**
      * @brief Renders the frame.
-     * 
+     *
      * @param[in] app A pointer to the application.
      * @param[in] frame_packet A pointer to the frame packet.
      */
@@ -54,7 +54,7 @@ typedef struct application {
 
     /**
      * @brief Deinitializes the application.
-     * 
+     *
      * @param[in] app A pointer to the application.
      */
     void (*deinit)(struct application *app);

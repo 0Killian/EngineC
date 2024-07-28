@@ -15,10 +15,10 @@ struct application;
 
 /**
  * @brief Initializes the critical components of the engine, like the memory system.
- * 
+ *
  * @note This function must be called first to make sure that the application can use
  * early systems in @ref create_application.
- * 
+ *
  * @retval TRUE Success
  * @retval FALSE Failure
  */
@@ -26,27 +26,27 @@ API b8 engine_early_init();
 
 /**
  * @brief Initializes the engine, its layers and systems.
- * 
+ *
  * @param[in] app A pointer to the application.
- * 
+ *
  * @retval TRUE Success
  * @retval FALSE Failure
  */
-API b8 engine_init(struct application* app);
+API b8 engine_init(struct application *app);
 
 /**
  * @brief Deinitializes the engine, its layers and systems.
- * 
+ *
  * @param[in] app A pointer to the application.
  */
-API void engine_deinit(struct application* app);
+API void engine_deinit(struct application *app);
 
 /**
  * @brief Runs the main loop of the engine.
- * 
+ *
  * @param[in] app A pointer to the application.
- * 
+ *
  * @retval TRUE Success
  * @retval FALSE Failure
  */
-API b8 engine_run(struct application* app);
+API b8 engine_run(struct application *app);

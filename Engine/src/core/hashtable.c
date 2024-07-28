@@ -1,6 +1,6 @@
 #include "hashtable.h"
-#include "memory.h"
 #include "core/str.h"
+#include "memory.h"
 
 #define LOG_SCOPE "HASHTABLE"
 #include "core/log.h"
@@ -151,7 +151,8 @@ API void *hashtable_get(hashtable *hashtable, const char *key) {
 
 API void hashtable_destroy(hashtable *hashtable) {
     for (u64 i = 0; i < hashtable->capacity; i++) {
-        hashtable_entry_header *header = (hashtable_entry_header *)(hashtable->data + (i * (hashtable->element_size + sizeof(hashtable_entry_header))));
+        hashtable_entry_header *header =
+            (hashtable_entry_header *)(hashtable->data + (i * (hashtable->element_size + sizeof(hashtable_entry_header))));
         if (header->present) {
             mem_free(header->key);
         }

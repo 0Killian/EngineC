@@ -12,6 +12,8 @@
 #include "math/vec2.h"
 #include "input.h"
 
+typedef struct event_system_state event_system_state;
+
 /** @brief The different types of events. */
 typedef enum event_type {
     /**
@@ -116,11 +118,9 @@ typedef enum event_type {
  * @brief The data associated with an event.
  */
 typedef union event_data {
-    // TODO: key type
     key key;
     u32 button;
 
-    // TODO: drag type
     struct {
         vec2f begin;
         vec2f current;
@@ -146,14 +146,14 @@ typedef void (*event_callback)(event_type type, event_data data, void *user_data
  * @retval TRUE Success
  * @retval FALSE Failure
  */
-b8 event_init(void *state, u64 *size_requirement);
+b8 event_init(event_system_state *state, u64 *size_requirement);
 
 /**
  * @brief Deinitializes the event system.
  * 
  * @param[in] state A pointer to the state of the event system.
  */
-void event_deinit(void *state);
+void event_deinit(event_system_state *state);
 
 /**
  * @brief Register a callback to be called when an event is fired, identified by its type and the resulting UUID.

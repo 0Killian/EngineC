@@ -8,19 +8,19 @@
 
 #pragma once
 
-#include "platform/platform.h"
 #include "core/dynamic_array.h"
+#include "platform/platform.h"
 
-
-struct linux_adapter_state;
+typedef struct linux_adapter_state linux_adapter_state;
 
 /** @brief State of the platform layer. */
-typedef struct platform_state {
+struct platform_system_state {
     DYNARRAY(window *) windows;
     platform_window_closed_callback window_closed_callback;
     dynamic_library adapter_lib;
-} platform_state;
+};
 
+/** @brief The interface of the linux adapter used to manage windows. */
 typedef struct linux_adapter {
     b8 (*get_state_size)(u64 *state_size);
     b8 (*init)(struct linux_adapter *adapter);
@@ -36,7 +36,7 @@ typedef struct linux_adapter {
     void (*vulkan_get_required_extensions)(void *extensions);
     b8 (*vulkan_queue_supports_present)(void *device, u32 queue_family);
 
-    struct platform_state *platform_state;
+    struct platform_system_state *platform_state;
     struct linux_adapter_state *adapter_state;
 } linux_adapter;
 

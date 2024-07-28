@@ -1,9 +1,8 @@
 #ifdef PLATFORM_LINUX
 #include "vulkan_platform.h"
-#include "vulkan_utils.h"
 #include <core/log.h>
-#include <vulkan/vulkan_wayland.h>
 #include <platform/linux_adapter.h>
+#include <vulkan/vulkan_wayland.h>
 
 /**
  * @brief Creates a vulkan surface using the platform-specific implementation.

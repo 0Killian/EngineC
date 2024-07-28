@@ -1,7 +1,7 @@
 #include "keyboard.h"
+#include "wayland_adapter.h"
 #include <core/event.h>
 #include <platform/linux_adapter.h>
-#include "wayland_adapter.h"
 
 static key key_from_scancode(u16 scan_code);
 
@@ -12,7 +12,8 @@ void wayland_keyboard_handle_keymap(void *data, struct wl_keyboard *wl_keyboard,
     (void)size;
 }
 
-void wayland_keyboard_handle_enter(void *data, struct wl_keyboard *wl_keyboard, u32 serial, struct wl_surface *surface, struct wl_array *keys) {
+void wayland_keyboard_handle_enter(
+    void *data, struct wl_keyboard *wl_keyboard, u32 serial, struct wl_surface *surface, struct wl_array *keys) {
     (void)wl_keyboard;
     linux_adapter *adapter = (linux_adapter *)data;
 
@@ -46,7 +47,8 @@ void wayland_keyboard_handle_key(void *data, struct wl_keyboard *wl_keyboard, u3
     }
 }
 
-void wayland_keyboard_handle_modifiers(void *data, struct wl_keyboard *wl_keyboard, u32 serial, u32 mods_depressed, u32 mods_latched, u32 mods_locked, u32 group) {
+void wayland_keyboard_handle_modifiers(
+    void *data, struct wl_keyboard *wl_keyboard, u32 serial, u32 mods_depressed, u32 mods_latched, u32 mods_locked, u32 group) {
     (void)data;
     (void)wl_keyboard;
     (void)serial;

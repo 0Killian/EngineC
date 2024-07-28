@@ -1,23 +1,21 @@
+#include "wayland_adapter.h"
 #include <platform/linux_adapter.h>
 #include <platform/platform.h>
-#include "wayland_adapter.h"
 #include <vulkan/vulkan.h>
 #include <vulkan/vulkan_wayland.h>
 
 #define LOG_SCOPE "WAYLAND ADAPTER"
 #include <core/log.h>
 
+#include "decoration.h"
+#include "keyboard.h"
+#include "pointer.h"
 #include "registry.h"
 #include "seat.h"
-#include "pointer.h"
-#include "keyboard.h"
 #include "surface.h"
 #include "toplevel.h"
-#include "decoration.h"
 
-static void wayland_shell_handle_ping(void *data, struct xdg_wm_base *shell, u32 serial) {
-    xdg_wm_base_pong(shell, serial);
-}
+static void wayland_shell_handle_ping(void *data, struct xdg_wm_base *shell, u32 serial) { xdg_wm_base_pong(shell, serial); }
 
 b8 wayland_get_state_size(u64 *state_size) {
     *state_size = sizeof(struct linux_adapter_state);
@@ -66,7 +64,7 @@ b8 wayland_init(struct linux_adapter *adapter) {
     state->toplevel_listener.configure_bounds = wayland_toplevel_handle_configure_bounds;
 
     state->xdg_surface_listener.configure = wayland_xdg_surface_handle_configure;
-    
+
     state->decoration_listener.configure = wayland_decoration_handle_configure_ssd;
 
     state->libdecor_iface.error = wayland_decoration_handle_error_csd;
@@ -107,7 +105,7 @@ b8 wayland_init(struct linux_adapter *adapter) {
         LOG_ERROR("Failed to get Wayland shell");
         return FALSE;
     }
-    
+
     if (state->decoration_manager == NULL) {
         LOG_WARN("Failed to get Wayland decoration manager, falling back to client side decorations");
     }
@@ -150,15 +148,18 @@ b8 wayland_window_create(struct linux_adapter *adapter, const window_config *con
     wl_surface_add_listener(window->platform_state->surface, &adapter->adapter_state->surface_listener, window);
 
     if (adapter->adapter_state->decoration_manager != NULL) {
-        window->platform_state->xdg_surface = xdg_wm_base_get_xdg_surface(adapter->adapter_state->shell, window->platform_state->surface);
+        window->platform_state->xdg_surface =
+            xdg_wm_base_get_xdg_surface(adapter->adapter_state->shell, window->platform_state->surface);
         xdg_surface_add_listener(window->platform_state->xdg_surface, &adapter->adapter_state->xdg_surface_listener, window);
 
         window->platform_state->toplevel = xdg_surface_get_toplevel(window->platform_state->xdg_surface);
         xdg_toplevel_add_listener(window->platform_state->toplevel, &adapter->adapter_state->toplevel_listener, window);
         xdg_toplevel_set_title(window->platform_state->toplevel, config->title);
 
-        zxdg_decoration_manager_v1_get_toplevel_decoration(adapter->adapter_state->decoration_manager, window->platform_state->toplevel);
-        zxdg_toplevel_decoration_v1_add_listener(window->platform_state->decoration, &adapter->adapter_state->decoration_listener, window);
+        zxdg_decoration_manager_v1_get_toplevel_decoration(adapter->adapter_state->decoration_manager,
+                                                           window->platform_state->toplevel);
+        zxdg_toplevel_decoration_v1_add_listener(
+            window->platform_state->decoration, &adapter->adapter_state->decoration_listener, window);
         zxdg_toplevel_decoration_v1_set_mode(window->platform_state->decoration, ZXDG_TOPLEVEL_DECORATION_V1_MODE_SERVER_SIDE);
     } else {
         wayland_setup_csd(window);
@@ -201,7 +202,10 @@ void wayland_window_destroy(struct linux_adapter *adapter, window *window) {
     window->platform_state = NULL;
 }
 
-b8 wayland_vulkan_surface_create(VkInstance instance, VkAllocationCallbacks *allocation_callbacks, VkSurfaceKHR *surface, const window *window) {
+b8 wayland_vulkan_surface_create(VkInstance instance,
+                                 VkAllocationCallbacks *allocation_callbacks,
+                                 VkSurfaceKHR *surface,
+                                 const window *window) {
     VkWaylandSurfaceCreateInfoKHR create_info = {
         .sType = VK_STRUCTURE_TYPE_WAYLAND_SURFACE_CREATE_INFO_KHR,
         .pNext = NULL,
@@ -227,7 +231,8 @@ void wayland_vulkan_get_required_extensions(void *extensions_raw) {
 }
 
 b8 wayland_vulkan_queue_supports_presentation(VkPhysicalDevice device, u32 queue_family_index) {
-    return vkGetPhysicalDeviceWaylandPresentationSupportKHR(device, queue_family_index, adapter->adapter_state->display) == VK_TRUE;
+    return vkGetPhysicalDeviceWaylandPresentationSupportKHR(device, queue_family_index, adapter->adapter_state->display) ==
+           VK_TRUE;
 }
 
 linux_adapter _adapter = {
@@ -238,7 +243,7 @@ linux_adapter _adapter = {
     .window_create = wayland_window_create,
     .window_set_title = wayland_window_set_title,
     .window_destroy = wayland_window_destroy,
-    .vulkan_surface_create = (b8(*)(void*,void*,void**,const window*))wayland_vulkan_surface_create,
+    .vulkan_surface_create = (b8(*)(void *, void *, void **, const window *))wayland_vulkan_surface_create,
     .vulkan_get_required_extensions = wayland_vulkan_get_required_extensions,
-    .vulkan_queue_supports_present = (b8(*)(void*,u32))wayland_vulkan_queue_supports_presentation
+    .vulkan_queue_supports_present = (b8(*)(void *, u32))wayland_vulkan_queue_supports_presentation,
 };

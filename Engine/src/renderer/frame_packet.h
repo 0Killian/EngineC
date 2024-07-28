@@ -8,8 +8,6 @@
 
 #pragma once
 
-#include "common.h"
-
 /** @brief A packet of data containing the render informations for this frame. */
 typedef struct frame_packet {
 } frame_packet;

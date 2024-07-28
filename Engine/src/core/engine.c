@@ -1,11 +1,11 @@
 #include "engine.h"
 #include "application.h"
-#include "platform/platform.h"
-#include "core/log.h"
-#include "core/memory.h"
 #include "core/event.h"
 #include "core/input.h"
+#include "core/log.h"
+#include "core/memory.h"
 #include "core/plugins.h"
+#include "platform/platform.h"
 #include "renderer/renderer.h"
 
 static void on_window_closed(const window *window);
@@ -13,17 +13,17 @@ static void on_window_resized(event_type type, event_data data, void *user_data)
 
 typedef struct engine_state {
     /** @brief The state of the platform layer. */
-    void *platform_state;
+    platform_system_state *platform_state;
     /** @brief The state of the logging system. */
-    void *logging_state;
+    log_system_state *log_state;
     /** @brief The state of the event system. */
-    void *event_state;
+    event_system_state *event_state;
     /** @brief The state of the input system. */
-    void *input_state;
+    input_system_state *input_state;
     /** @brief The state of the plugins system. */
-    void *plugins_state;
+    plugins_system_state *plugins_state;
     /** @brief The state of the renderer system. */
-    void *renderer_state;
+    renderer_system_state *renderer_state;
 
     /** @brief The window state. */
     window *window;
@@ -39,10 +39,10 @@ engine_state *state;
 
 /**
  * @brief Initializes the critical components of the engine, like the memory system.
- * 
+ *
  * @note This function must be called first to make sure that the application can use
  * early systems in @ref create_application.
- * 
+ *
  * @retval TRUE Success
  * @retval FALSE Failure
  */
@@ -58,9 +58,9 @@ API b8 engine_early_init() {
 
 /**
  * @brief Initializes the engine, its layers and systems.
- * 
+ *
  * @param[in] app A pointer to the application.
- * 
+ *
  * @retval TRUE Success
  * @retval FALSE Failure
  */
@@ -91,8 +91,8 @@ b8 engine_init(application *app) {
         return FALSE;
     }
 
-    state->logging_state = mem_alloc(MEMORY_TAG_ENGINE, size_requirement);
-    if (!log_init(state->logging_state, &size_requirement)) {
+    state->log_state = mem_alloc(MEMORY_TAG_ENGINE, size_requirement);
+    if (!log_init(state->log_state, &size_requirement)) {
         LOG_ERROR("Failed to initialize the logging system");
         return FALSE;
     }
@@ -140,7 +140,7 @@ b8 engine_init(application *app) {
         LOG_ERROR("Failed to create the window");
         return FALSE;
     }
-    
+
     // Initializing renderer system
     if (!renderer_init(NULL, &size_requirement, state->window)) {
         LOG_ERROR("Failed to initialize the renderer system");
@@ -160,13 +160,13 @@ b8 engine_init(application *app) {
 
 /**
  * @brief Deinitializes the engine, its layers and systems.
- * 
+ *
  * @param[in] app A pointer to the application.
  */
 void engine_deinit(struct application *app) {
     state->is_running = FALSE;
 
-    if (!event_fire(EVENT_TYPE_APPLICATION_QUIT, (event_data) {})) {
+    if (!event_fire(EVENT_TYPE_APPLICATION_QUIT, (event_data){})) {
         LOG_WARN("Failed to fire EVENT_TYPE_APPLICATION_QUIT");
     }
 
@@ -203,9 +203,9 @@ void engine_deinit(struct application *app) {
         mem_free(state->event_state);
     }
 
-    if (state->logging_state) {
-        log_deinit(state->logging_state);
-        mem_free(state->logging_state);
+    if (state->log_state) {
+        log_deinit(state->log_state);
+        mem_free(state->log_state);
     }
 
     if (state->platform_state) {
@@ -224,9 +224,9 @@ void engine_deinit(struct application *app) {
 
 /**
  * @brief Runs the main loop of the engine.
- * 
+ *
  * @param[in] app A pointer to the application.
- * 
+ *
  * @retval TRUE Success
  * @retval FALSE Failure
  */
@@ -322,9 +322,7 @@ b8 engine_run(struct application *app) {
     return TRUE;
 }
 
-static void on_window_closed(const window *window) {
-    state->is_running = FALSE;
-}
+static void on_window_closed(const window *window) { state->is_running = FALSE; }
 
 static void on_window_resized(event_type type, event_data data, void *user_data) {
     if (state->window->width == 0 || state->window->height == 0) {

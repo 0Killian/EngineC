@@ -20,7 +20,7 @@ typedef struct str_view {
 typedef enum trim_type {
     TRIM_LEFT = 0x1,
     TRIM_RIGHT = 0x2,
-    TRIM_BOTH = TRIM_LEFT | TRIM_RIGHT
+    TRIM_BOTH = TRIM_LEFT | TRIM_RIGHT,
 } trim_type;
 
 /**
@@ -36,7 +36,7 @@ str_view str_view_from_cstr(const char *cstr);
 
 /**
  * @brief Splits a string view by the provided delimiters into a subpart and the remaining
- * 
+ *
  * @param[in,out] str The string view
  * @param[in] delims The delimiters
  * @param[out] The subpart
