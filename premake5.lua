@@ -43,6 +43,9 @@ project "Engine"
     filter "system:windows"
         links { "gdi32" }
 
+    filter "system:linux"
+        links { "m" }
+
 project "WaylandAdapter"
     basedir "WaylandAdapter"
     kind "SharedLib"

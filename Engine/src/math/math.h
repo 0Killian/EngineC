@@ -6,6 +6,9 @@
  * @date 2024-07-19
  */
 
+#include "common.h"
+#include_next <math.h>
+
 /** @brief Align an integer upwards to the next multiple of a */
 #define ALIGN_UP(x, a) (((x) + ((a) - 1)) & ~((a) - 1))
 
@@ -20,3 +23,7 @@
 
 /** @brief Return the clamped value */
 #define CLAMP(x, min, max) MAX(min, MIN(x, max))
+
+static inline f32 pow32(f32 x, f32 y) {
+    return powf(x, y);
+}
