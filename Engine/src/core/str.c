@@ -35,9 +35,36 @@ b8 str_view_split(str_view *str, const char *delims, str_view *out) {
     return found;
 }
 
+b8 str_view_take_all(str_view *view, const char *characters, str_view *out) {
+    *out = (str_view) {
+        .begin = view->begin,
+        .size = 0,
+    };
+
+    while (view->size > 0) {
+        b8 found = FALSE;
+        for (u32 i = 0; characters[i] != 0; i++) {
+            if (view->begin[0] == characters[i]) {
+                found = TRUE;
+                break;
+            }
+        }
+
+        if (found) {
+            view->begin++;
+            view->size--;
+            (*out).size++;
+        } else {
+            return FALSE;
+        }
+    }
+
+    return TRUE;
+}
+
 void str_view_trim(str_view *view, trim_type type) {
     if (type & TRIM_LEFT) {
-        while (view->size > 0 && view->begin[0] == ' ') {
+        while (view->size > 0 && str_is_whitespace(view->begin[0])) {
             view->begin++;
             view->size--;
         }
@@ -163,3 +190,13 @@ b8 str_view_contains_char(str_view haystack, char needle) {
 }
 
 u64 str_len(const char *str) { return strlen(str); }
+
+u64 str_view_count(str_view view, char needle) {
+    u64 count = 0;
+    for (u32 i = 0; i < view.size; i++) {
+        if (view.begin[i] == needle) {
+            count++;
+        }
+    }
+    return count;
+}

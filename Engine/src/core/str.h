@@ -47,6 +47,28 @@ str_view str_view_from_cstr(const char *cstr);
 b8 str_view_split(str_view *str, const char *delims, str_view *out);
 
 /**
+ * @brief Consumes characters from a string view until the next character is not in the set
+ *
+ * @param[in,out] view The string view
+ * @param[in] characters The characters
+ * @param[out] The subpart
+ *
+ * @retval TRUE All the input was consumed
+ * @retval FALSE There was a character that was not in the set
+ */
+b8 str_view_take_all(str_view *view, const char *characters, str_view *out);
+
+/**
+ * @brief Checks if a character is whitespace
+ *
+ * @param[in] c The character
+ *
+ * @retval TRUE The character is whitespace
+ * @retval FALSE The character is not whitespace
+ */
+static inline b8 str_is_whitespace(char c) { return c == ' ' || c == '\t' || c == '\n' || c == '\r'; }
+
+/**
  * @brief Trims a string view
  *
  * @param[in,out] view The string view
@@ -254,3 +276,13 @@ b8 str_view_contains_char(str_view haystack, char needle);
  * @returns The length of the string
  */
 u64 str_len(const char *str);
+
+/**
+ * @brief Returns the number of times a character appears in a string view
+ * 
+ * @param[in] view The string view
+ * @param[in] needle The character
+ *
+ * @returns The number of times the character appears
+ */
+u64 str_view_count(str_view view, char needle);
