@@ -33,6 +33,7 @@ typedef enum platform_console_color {
     PLATFORM_CONSOLE_COLOR_LIGHT_PURPLE,
     PLATFORM_CONSOLE_COLOR_LIGHT_YELLOW,
     PLATFORM_CONSOLE_COLOR_BRIGHT_WHITE,
+    PLATFORM_CONSOLE_COLOR_RESET,
 } platform_console_color;
 
 /** @brief A handle to a Dynamic Library. */

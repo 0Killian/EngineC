@@ -32,8 +32,8 @@ API void log_output(log_level level, const char *scope, const char *message, ...
     };
 
     platform_console_color level_colors_background[] = {
-        PLATFORM_CONSOLE_COLOR_BLACK, PLATFORM_CONSOLE_COLOR_BLACK, PLATFORM_CONSOLE_COLOR_BLACK,
-        PLATFORM_CONSOLE_COLOR_BLACK, PLATFORM_CONSOLE_COLOR_BLACK, PLATFORM_CONSOLE_COLOR_WHITE,
+        PLATFORM_CONSOLE_COLOR_RESET, PLATFORM_CONSOLE_COLOR_RESET, PLATFORM_CONSOLE_COLOR_RESET,
+        PLATFORM_CONSOLE_COLOR_RESET, PLATFORM_CONSOLE_COLOR_RESET, PLATFORM_CONSOLE_COLOR_WHITE,
     };
 
     // NOTE: Imposes a 16KiB character limit, but no log should be longer than that

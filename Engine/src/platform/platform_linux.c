@@ -16,7 +16,12 @@ static const char *convert_platform_color(platform_console_color foreground, pla
     static char output[12];
     output[0] = '\0';
 
+    if (background == PLATFORM_CONSOLE_COLOR_RESET) {
+        str_cat(output, "\033[0m");
+    }
+
     switch (foreground) {
+    case PLATFORM_CONSOLE_COLOR_RESET: str_cat(output, "\033[0m"); break;
     case PLATFORM_CONSOLE_COLOR_BLACK: str_cat(output, "\033[30m"); break;
     case PLATFORM_CONSOLE_COLOR_BLUE: str_cat(output, "\033[34m"); break;
     case PLATFORM_CONSOLE_COLOR_GREEN: str_cat(output, "\033[32m"); break;
@@ -37,6 +42,7 @@ static const char *convert_platform_color(platform_console_color foreground, pla
     }
 
     switch (background) {
+    case PLATFORM_CONSOLE_COLOR_RESET: break;
     case PLATFORM_CONSOLE_COLOR_BLACK: str_cat(output, "\033[40m"); break;
     case PLATFORM_CONSOLE_COLOR_BLUE: str_cat(output, "\033[44m"); break;
     case PLATFORM_CONSOLE_COLOR_GREEN: str_cat(output, "\033[42m"); break;

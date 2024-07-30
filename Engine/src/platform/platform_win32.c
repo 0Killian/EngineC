@@ -32,6 +32,13 @@ static LRESULT wnd_proc(window *, UINT, WPARAM, LPARAM);
 static void clock_setup();
 
 static u8 convert_platform_color(platform_console_color foreground, platform_console_color background) {
+    // TODO: Reset color
+    if (foreground == PLATFORM_CONSOLE_COLOR_RESET) {
+        foreground = PLATFORM_CONSOLE_COLOR_WHITE;
+    } else if (background == PLATFORM_CONSOLE_COLOR_RESET) {
+        background = PLATFORM_CONSOLE_COLOR_BLACK;
+    }
+
     return foreground & 0xF | (background & 0xF) << 4;
 }
 
